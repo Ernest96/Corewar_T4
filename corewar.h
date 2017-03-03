@@ -17,15 +17,23 @@
 #include <stdint.h>
 #include "get_next_line.h"
 
-typedef	struct	s_mat
+typedef	struct		s_mat
 {
-	char	*laba;
-	char	*instr;
-	int8_t	acb;
-	char	*arg1;
-	char	*arg2;
-	char	*arg3;
-}				t_mat;
+	char			*laba;
+	char			*instr;
+	unsigned char	acb;
+	char			*arg1;
+	char			*arg2;
+	char			*arg3;
+}					t_mat;
+
+typedef struct 	s_pos
+{
+	int 	loc;
+    int     start;
+	char 	*str;
+	int 	off;
+}				t_pos;
 
 char *g_instr[] = {"", "live", "ld", "st", "add", "sub", "and", "or",
 							"xor", "zjmp", "ldi", "sti", "fork", "lld",
