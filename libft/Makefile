@@ -1,7 +1,7 @@
 NAME = libft.a
 FLAGS = -Wall -Wextra -Werror
 CC = gcc
-OBJ = ft_memset.o ft_bzero.o ft_memcpy.o ft_memmove.o ft_memchr.o \
+OBJ = ft_memset.o ft_bzero.o ft_memcpy.o ft_memchr.o \
 	    ft_memcmp.o ft_strlen.o ft_strdup.o ft_strcpy.o ft_strncpy.o ft_strcat.o \
 		  ft_strncat.o ft_strlcat.o ft_strchr.o ft_strrchr.o ft_strstr.o \
 		    ft_strnstr.o ft_strcmp.o ft_strncmp.o ft_atoi.o ft_isalpha.o ft_isdigit.o \
@@ -12,7 +12,7 @@ OBJ = ft_memset.o ft_bzero.o ft_memcpy.o ft_memmove.o ft_memchr.o \
 					  ft_itoa.o ft_putchar.o ft_putstr.o ft_putendl.o ft_putnbr.o \
 					    ft_putchar_fd.o ft_putstr_fd.o ft_putendl_fd.o ft_putnbr_fd.o \
 						  ft_memccpy.o ft_lstnew.o ft_lstdelone.o ft_lstdel.o ft_lstadd.o \
-						    ft_lstiter.o ft_lstmap.o
+						    ft_lstiter.o ft_lstmap.o ft_split_whitespaces.o
 
 all: $(NAME)
 

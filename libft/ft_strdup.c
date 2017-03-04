@@ -18,6 +18,12 @@ char	*ft_strdup(const char *src)
 	char			*mem;
 	unsigned int	j;
 
+	if (src == NULL)
+	{
+		mem = (char*)malloc(1);
+		*mem = 0;
+		return (mem);
+	}
 	i = 0;
 	while (*(src + i))
 		i++;

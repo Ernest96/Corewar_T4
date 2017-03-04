@@ -55,7 +55,6 @@ int					ft_isascii(int chr);
 int					ft_isprint(int chr);
 int					ft_toupper(int chr);
 int					ft_tolower(int chr);
-char				**ft_split_whitespaces(char *s);
 void				*ft_memalloc(size_t size);
 void				ft_memdel(void **ap);
 char				*ft_strnew(size_t size);
@@ -82,6 +81,7 @@ void				ft_putendl_fd(char const *s, int fd);
 void				ft_putnbr_fd(int n, int fd);
 int					ft_max(int x, int y);
 int					ft_min(int x, int y);
+char				**ft_split_whitespaces(char *s);
 typedef struct		s_list
 {
 	void			*content;
