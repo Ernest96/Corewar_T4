@@ -1,10 +1,15 @@
 
-  
+.name o
 
-.comment xa
-.name aa
+.name a
+.name
+.comment a
 iuhu
 asdasd
 asdasd
 ss
 
+
+
+
+   

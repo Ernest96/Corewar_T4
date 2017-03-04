@@ -40,32 +40,35 @@ void	free_words(char ***words)
 	free(*words);
 }
 
+void	ft_init_name_comment(int8_t *f, char *to_in, int8_t *seek, char *s)
+{
+	free(to_in);
+	*f = 1;
+	g_offset += ft_strlen(s) + 1;
+	*seek = 0;
+}
+
 void	ft_check_name_comment(char **s, int fd)
 {
 	CH;
-	if (flags[2])
+	if (flags[2] && (flags[0] || flags[1]))
 		ft_comp_error();
+	printf("pk\n");
 	words = ft_split_whitespaces(*s);
 	ft_check_words_1(words, 0);
 	if (ft_strcmp(words[0], ".name") == 0)
 	{
 		if (flags[0])
 			ft_comp_error();
-		free(g_name);
+		ft_init_name_comment(flags, g_name, &seek, *s);
 		g_name = ft_strdup(words[1]);
-		flags[0] = 1;
-		g_offset += ft_strlen(*s) + 1;
-		seek = 0;
 	}
 	else if (ft_strcmp(words[0], ".comment") == 0)
 	{
 		if (flags[1])
 			ft_comp_error();
-		free(g_comment);
+		ft_init_name_comment(flags + 1, g_comment, &seek, *s);
 		g_comment = ft_strdup(words[1]);
-		flags[1] = 1;
-		g_offset += ft_strlen(*s) + 1;
-		seek  = 0;
 	}
 	free_words(&words);
 	if (seek)
@@ -110,6 +113,23 @@ void	ft_skip_spaces(int fd)
 	lseek(fd, g_offset, SEEK_SET);
 }
 
+
+void	ft_first_check(int fd)
+{
+	char *line;
+
+	ft_skip_spaces(fd);
+	get_next_line(fd, &line);
+	ft_check_name_comment(&line, fd);
+	ft_skip_spaces(fd);
+	free(line);
+	get_next_line(fd, &line);
+	ft_check_name_comment(&line, fd);
+	ft_skip_spaces(fd);
+	free(line);
+}
+
+
 int	main(int argc, char **argv)
 { 
 	int	fd;
@@ -122,13 +142,7 @@ int	main(int argc, char **argv)
 	if (fd < 0)
 		ft_invalid_input();
 	ft_check_ext(argv[1]);
-	ft_skip_spaces(fd);
-	get_next_line(fd, &line);
-	ft_check_name_comment(&line, fd);
-	ft_skip_spaces(fd);
-	get_next_line(fd, &line);
-	ft_check_name_comment(&line, fd);
-	ft_skip_spaces(fd);
+	ft_first_check(fd);
 	while (get_next_line(fd, &line))
 	{
 		words = ft_split_whitespaces(line);
@@ -137,6 +151,7 @@ int	main(int argc, char **argv)
 		ft_putstr(line);
 		ft_putchar('\n');
 		free(line);
+		free_words(&words);
 		ft_skip_spaces(fd);
 	}
 	ft_putstr("name: ");
