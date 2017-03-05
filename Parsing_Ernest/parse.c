@@ -6,7 +6,7 @@
 /*   By: ebitca <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/03/02 17:06:44 by ebitca            #+#    #+#             */
-/*   Updated: 2017/03/02 18:15:42 by ebitca           ###   ########.fr       */
+/*   Updated: 2017/03/05 15:51:37 by ebitca           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ void	free_words(char ***words)
 
 	i = -1;
 	while (*(*words + ++i)!= NULL)
-		free(*(*words + ++i));
+		free(*(*words + i));
 	free(*words);
 }
 
@@ -121,12 +121,12 @@ void	ft_first_check(int fd)
 	ft_skip_spaces(fd);
 	get_next_line(fd, &line);
 	ft_check_name_comment(&line, fd);
-	ft_skip_spaces(fd);
 	free(line);
+	ft_skip_spaces(fd);
 	get_next_line(fd, &line);
 	ft_check_name_comment(&line, fd);
-	ft_skip_spaces(fd);
 	free(line);
+	ft_skip_spaces(fd);
 }
 
 
