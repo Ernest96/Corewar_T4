@@ -6,7 +6,7 @@
 /*   By: vcrivenc <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/03/02 16:38:56 by vcrivenc          #+#    #+#             */
-/*   Updated: 2017/03/02 18:16:39 by ebitca           ###   ########.fr       */
+/*   Updated: 2017/03/05 18:21:48 by dprovorn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,11 @@ typedef struct 	s_pos
 char *g_name, *g_comment;
 int	g_offset;
 int	g_line;
-
+t_mat *g_mat;
+char *g_stack[100];
+int g_size;
+int g_top;
+int8_t g_can;
 int		get_next_line(int fd, char **line);
 void	ft_usage(void);
 void	ft_invalid_input(void);
@@ -57,7 +61,7 @@ void	ft_check_words_1(char **words, int8_t flag);
 void	free_words(char ***words);
 void	ft_check_name_comment(char **s, int fd);
 int8_t ft_only_space(char *line);
-void	ft_skip_spaces(int fd);
-void	ft_check_dir(char **words, int8_t flag);
+void	ft_skip_spaces(int *fd);
+int 	ft_check_dir(char **words, int8_t flag);
 void	ft_check_ext(char *s);
 #endif

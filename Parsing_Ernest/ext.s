@@ -1,16 +1,9 @@
-
 .name o
+.comment a
 
-.comement a
-iuhu
-asdasd
-asdasd
-ss
-
-aaaa
-asda
-
-sdasdasd asd asd asd asd asd asd eww 
-
-
-   
+label: 
+alta:
+noua:
+#ALO
+xor r2 , r1 , r1 
+#loshka

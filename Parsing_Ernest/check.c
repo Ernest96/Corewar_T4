@@ -1,7 +1,10 @@
 #include "../corewar.h"
 
-void	ft_check_dir(char **words, int8_t flag)
+int	ft_check_dir(char **words, int8_t flag)
 {
+	int flag2;
+
+	flag2 = 0;
 	if (words[0] != NULL && !flag)
 	{
 		if (words[0][0] == '.')
@@ -9,6 +12,8 @@ void	ft_check_dir(char **words, int8_t flag)
 			if (!(!ft_strcmp(words[0], ".name") ||
 					!ft_strcmp(words[0], ".comment")))
 				ft_comp_error();
+			else 
+				flag2 = 1;
 		}
 	}
 	if (!flag && words[0] != NULL)
@@ -19,6 +24,7 @@ void	ft_check_dir(char **words, int8_t flag)
 		   ft_comp_error();
 		++words;
 	}
+	return (flag2);
 }
 
 void	ft_check_ext(char *s)
