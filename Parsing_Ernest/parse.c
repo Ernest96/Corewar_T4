@@ -49,6 +49,7 @@ void	print_struct()
 		printf("%s\t", g_mat[i].arg1);
 		printf("%s\t", g_mat[i].arg2);
 		printf("%s\t", g_mat[i].arg3);
+		printf("\n");
 	}
 }
 
@@ -146,6 +147,7 @@ int8_t check_direct(char *s)
 			return (0);
 		g_stack[g_top] = ft_strdup(s + 2);
 		++g_top;
+		return (1);
 	}
 	else if (str_is_num(s + 1))
 		return (1);
@@ -156,12 +158,13 @@ int8_t check_indirect(char *s)
 {
 	if (str_is_num(s))
 		return (1);
-	if (s[0] == ':')
+	if (s[0] == '%')
 	{
 		if (!s[1] || (s[1] >= '0' && s[1] <= '9'))
 			return (0);
 		g_stack[g_top] = ft_strdup(s + 1);
 		++g_top;
+		return (1);
 	}
 	return (0);
 }
@@ -321,7 +324,7 @@ int8_t ft_only_space(char *line)
 		return (1);
 	while (*line)
 	{
-		if (*line != ' ')
+		if (*line != ' ' && *line != '\t')
 			return (0);
 		++line;
 	}
@@ -403,4 +406,5 @@ int	main(int argc, char **argv)
 	ft_putchar('\n');
 	printf("____________\n");
 	print_struct();
+	ft_putchar('\n');
 }
