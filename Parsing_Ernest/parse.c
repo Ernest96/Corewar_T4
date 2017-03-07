@@ -381,6 +381,68 @@ void	ft_first_check(int *fd)
 	ft_skip_spaces(fd);
 }
 
+void	ft_labe_error(const char *s)
+{
+	write(1, AC_R, 5);
+	ft_putstr("Fatal: ");
+	write(1, AC_RES, 4);
+	ft_putstr("Compilation error\n");
+	write(1, AC_RES, 4);
+	write(1, AC_R, 5);
+	ft_putstr(s);
+	write(1, AC_RES, 4);
+	ft_putchar('\n');
+	exit(0);
+}
+
+void ft_check_letters(void)
+{
+	int top;
+	int j;
+	const char *ch = "abcdefghijklmnopqrstuvwxyz_0123456789";
+
+	top = g_top;
+	while (--top != -1)
+	{
+		j = -1;
+		while (g_stack[top][++j])
+		if (!ft_strchr(ch, g_stack[top][j]))
+				ft_labe_error("Invalid symbol for label");
+	}
+}
+
+void	ft_check_stack(void)
+{
+	int top;
+	int i;
+	int8_t flag;
+
+	top = g_top;
+
+	while (--top != -1)
+	{
+		i = -1;
+		flag = 0;
+		while (++i < g_size)
+		{
+			if (g_mat[i].laba == NULL)
+				continue ;
+			if (!ft_strcmp(g_stack[top], g_mat[i].laba))
+				++flag;
+		}
+		if (flag != 1)
+		{
+			printf("flag = %d\n",flag);
+			ft_labe_error("Invalid label adresation");
+		}
+	}
+}
+
+void	ft_find_label(void)
+{
+	ft_check_letters();
+	ft_check_stack();
+}
 
 int	main(int argc, char **argv)
 { 
@@ -389,6 +451,7 @@ int	main(int argc, char **argv)
 	char **words;
 	//header_t header;
 
+	g_top = 0;
 	if (argc != 2)
 		ft_usage();
 	g_mat =(t_mat*)malloc(sizeof(t_mat) * 1000);
@@ -416,6 +479,7 @@ int	main(int argc, char **argv)
 	ft_putstr(g_comment);
 	ft_putchar('\n');
 	printf("____________\n");
+	ft_find_label();
 	print_struct();
 	ft_putchar('\n');
 }

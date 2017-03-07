@@ -7,8 +7,8 @@
 
 .comment a
 
-		label:
-sti r7,%:live, %1
+alabel:
+sti r7,%alabel, %1
 live 		%34
 add r5, r1, r2
 sub r2, r2, r4
