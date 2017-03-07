@@ -46,6 +46,7 @@ void	print_struct()
 	{
 		printf("%s\t", g_mat[i].laba);
 		printf("%s\t", g_mat[i].instr);
+		printf("%x\t", g_mat[i].acb);
 		printf("%s\t", g_mat[i].arg1);
 		printf("%s\t", g_mat[i].arg2);
 		printf("%s\t", g_mat[i].arg3);
@@ -86,20 +87,37 @@ void	just_label()
 
 int8_t	can_accept(int8_t order, int par, int inst)
 {
-	printf("car = %c", g_sabl[inst][3*order+par]);
 	if(g_sabl[inst][3*order+par] == '1')
 		return (1);
 	return (0);
 }
 
-void	set_args(int8_t ord, char *str)
+
+unsigned char	get_acb(int8_t offset, int8_t type)
+{
+	unsigned char temp;
+	temp = type << 2*offset;
+	return(temp);
+}
+
+
+void	set_args(int8_t ord, char *str, int8_t type)
 {
 	if(ord == 0)
+	{
 		g_mat[g_size].arg1 = ft_strdup(str);
+		g_mat[g_size].acb+= get_acb(3, type);
+	}
 	if(ord == 1)
+	{
 		g_mat[g_size].arg2 = ft_strdup(str);
+		g_mat[g_size].acb+= get_acb(2, type);
+	}
 	if(ord == 2)
+	{
 		g_mat[g_size].arg3 = ft_strdup(str);
+		g_mat[g_size].acb+= get_acb(1, type);
+	}
 }
 
 int8_t check_is_reg(char *s)
@@ -171,6 +189,7 @@ int8_t check_indirect(char *s)
 
 void	obnulim()
 {
+	g_mat[g_size].acb = 0;
 	g_mat[g_size].arg1 = NULL;
 	g_mat[g_size].arg2 = NULL;
 	g_mat[g_size].arg3 = NULL;
@@ -187,23 +206,21 @@ int		check_args(char **words, int8_t rez, int j)
 		if(check_is_reg(words[i]))
 		{
 			if(can_accept(i, 0, j))
-			{
-				set_args(i, words[i]);
-			}
+				set_args(i, words[i], 1);
 			else
 				return (0);
 		}
 		else if(check_direct(words[i]))
 		{
 			if(can_accept(i, 1, j))
-				set_args(i, words[i]);
+				set_args(i, words[i], 2);
 			else
 				return (0);
 		}
 		else if(check_indirect(words[i]))
 		{
 			if(can_accept(i, 2, j))
-				set_args(i, words[i]);
+				set_args(i, words[i], 3);
 			else
 				return (0);
 		}
@@ -232,16 +249,10 @@ void	ft_check_words_1(char **words, int8_t flag)
 		g_mat[g_size].laba = NULL;
 	rez = ft_check_instr(words[0 + labe], &i);
 	if (rez != ft_num_words(words + 1 + labe) || rez == 0)
-	{
-		printf("\n rez = %s\n",words[2]);
 		ft_comp_error();
-	}
 	g_mat[g_size].instr = ft_strdup(g_instr[i]);
 	if(!check_args(words + 1 + labe, rez, i))
-	{
-		printf("\nAm iesit\n");
 		ft_comp_error();
-	}
 	++g_size;
 }
 
