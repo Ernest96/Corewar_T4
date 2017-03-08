@@ -1,4 +1,4 @@
-NAME = asm
+NAME = corewar
 
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror

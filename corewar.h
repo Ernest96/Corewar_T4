@@ -26,12 +26,14 @@
 # define AC_M 			"\x1b[35m"
 # define AC_C    		"\x1b[36m"
 # define AC_RES  		"\x1b[0m"
+#define MEMSIZE 4096
+
 
 typedef	struct	s_mat
 {
 	char	*laba;
 	char	*instr;
-	int8_t	acb;
+	unsigned char acb;
 	char	*arg1;
 	char	*arg2;
 	char	*arg3;
@@ -45,16 +47,53 @@ typedef struct 	s_pos
 	int 	off;
 }				t_pos;
 
+typedef struct 	s_player
+{
+	int nr;
+	char *name;
+}				t_player;
+
 char *g_name, *g_comment;
+char **g_sabl;
+char **g_instr;
+int8_t g_par[17];
 int	g_offset;
 int	g_line;
 t_mat *g_mat;
 char *g_stack[100];
 int g_size;
 int g_top;
+int	g_j[4];
 int8_t g_can;
+unsigned char       g_a[MEMSIZE];
+int                 g_i;
+int                 g_ip;
+int                 g_fi;
+int                 g_si;
+t_pos               g_search[100];
+t_pos               g_found[100];
+int                 test[100];
+int                 p_test;
+t_player 			g_arr[5];
+unsigned char **g_order;
+
+
 int		get_next_line(int fd, char **line);
+int    is_return(int i);
+void    print(void);
+void	set_label(char *label, int o);
+void    codify(void);
+void    set_dir(char *arg);
+void    set_reg(char *arg);
+void    print_struct(void);
+void    print_struct2(void);
+void    insert_labels(void);
+void    set_arg(char *arg, int acb);
 void	ft_usage(void);
+void    set_indir(char *arg);
+void    set_instr(char *arg);
+unsigned char	set_acb(unsigned char acb);
+void	check_label(char *arg);
 void	ft_invalid_input(void);
 void	ft_comp_error(void);
 void	ft_check_words_1(char **words, int8_t flag);

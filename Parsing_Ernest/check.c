@@ -32,14 +32,15 @@ void	ft_check_ext(char *s)
 	int last;
 
 	last = ft_strlen(s);
-	if (s[last] - 1 != 's' && s[last - 2] != '.')
+	if (!(s[last - 1] == 's' && s[last - 2] == '.'))
 	{
+		printf("am intrat\n");
 		write(1, AC_R, 5);
 		ft_putstr("Fatal: ");
 		write(1, AC_RES, 4);
 		ft_putstr("Invalid extension\n");
 		exit(0);
 	}
-	g_name = ft_strdup("unnamed");
-	g_comment = ft_strdup("");
+	ft_strcpy(g_name, "X");
+	ft_strcpy(g_name, "");
 }

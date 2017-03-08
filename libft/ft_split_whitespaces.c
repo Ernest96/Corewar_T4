@@ -14,7 +14,7 @@
 
 short	is_ok(char c)
 {
-	if (c && c != '\t' && c != '\n' && c != ',' && c != ' ')
+	if (c && c != '\t' && c != '\n' && c != ',' && c != ' ' && c != '\"')
 		return (1);
 	else
 		return (0);

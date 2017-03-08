@@ -11,18 +11,7 @@
 /* ************************************************************************** */
 
 #include "../corewar.h"
-#define memsize 4096
 
-
-unsigned char       a[memsize];
-int                 i = 0;
-int                 g_ip = 0;
-int                 g_fi = 0;
-int                 g_si = 0;
-t_pos               g_search[100];
-t_pos               g_found[100];
-int                 test[100];
-int                 p_test=0;
 
 int    is_return(int i)
 {
@@ -37,11 +26,11 @@ void    print(void)
 	int q;
 
 	q = 0;
-	while(q < i)
+	while(q < g_i)
 	{
 		if (q && is_return(q))
 			printf("\n");
-		printf("%2.2x ", a[q]);
+		printf("%2.2x ", g_a[q]);
 		q++;
 	}
 }
@@ -50,8 +39,8 @@ void	set_label(char *label, int o)
 {
     if(!label)
         return;
-    g_search[g_si].str = strdup(label);
-    g_search[g_si].loc = i;
+    g_search[g_si].str = ft_strdup(label);
+    g_search[g_si].loc = g_i;
     g_search[g_si].off = o;
     g_search[g_si].start = g_ip;
     g_si++;
@@ -61,7 +50,7 @@ void	check_label(char *arg)
 {
     if(!arg)
         return;
-    g_found[g_fi].str = strdup(arg);
+    g_found[g_fi].str = ft_strdup(arg);
     g_found[g_fi].loc = g_ip;
     g_fi++;
 }
@@ -73,11 +62,11 @@ void    set_instr(char *arg)
 	q = 0;
 	while (q <= 16)
 	{
-		if (strcmp(arg, g_instr[q]) == 0)
+		if (ft_strcmp(arg, g_instr[q]) == 0)
 		{
 			//printf("\ninstructiunea %s, are codul %d\n", arg, q);
-			a[i] = q;
-			i++;
+			g_a[g_i] = q;
+			g_i++;
 			break;
 		}
 		q++;
@@ -86,8 +75,8 @@ void    set_instr(char *arg)
 
 unsigned char	set_acb(unsigned char acb)
 {
-	a[i] = acb;
-	i++;
+	g_a[g_i] = acb;
+	g_i++;
 	return (acb);
 }
 
@@ -100,15 +89,15 @@ void    set_indir(char *arg)
 	if (arg[0] == ':')
 	{
         set_label(arg+1, 2);
-		a[i] = 0;
-		a[i + 1] = 0;
-		i+= 2;
+		g_a[g_i] = 0;
+		g_a[g_i + 1] = 0;
+		g_i += 2;
 		return ;
 	}
 	indir = atoi(arg);
-	a[i] = indir >> 8 & 0xff;
-	a[i + 1] = indir & 0xff;
-	i += 2;
+	g_a[g_i] = indir >> 8 & 0xff;
+	g_a[g_i + 1] = indir & 0xff;
+	g_i += 2;
 }
 
 void    set_dir(char *arg)
@@ -118,19 +107,19 @@ void    set_dir(char *arg)
 	if (arg[1] == ':')
 	{
         set_label(arg+2, 4);
-		a[i] = 0;
-		a[i + 1] = 0;
-		a[i + 2] = 0;
-		a[i + 3] = 0;
-		i += 4;
+		g_a[g_i] = 0;
+		g_a[g_i + 1] = 0;
+		g_a[g_i + 2] = 0;
+		g_a[g_i + 3] = 0;
+		g_i += 4;
 		return ;
 	}
 	dir = atoi(arg + 1);
-	a[i] = dir >> 24 & 0xff;
-	a[i + 1] = dir >> 16 & 0xff;
-	a[i + 2] = dir >> 8 & 0xff;
-	a[i + 3] = dir & 0xff;
-	i += 4;
+	g_a[g_i] = dir >> 24 & 0xff;
+	g_a[g_i + 1] = dir >> 16 & 0xff;
+	g_a[g_i + 2] = dir >> 8 & 0xff;
+	g_a[g_i + 3] = dir & 0xff;
+	g_i += 4;
 }
 
 
@@ -140,8 +129,8 @@ void    set_reg(char *arg)
 	int reg;
 
 	reg = atoi(arg + 1);
-	a[i] = reg;
-	i++;
+	g_a[g_i] = reg;
+    g_i++;
 }
 
 void    set_arg(char *arg, int acb)
@@ -161,24 +150,24 @@ void    codify(void)
 		char temp;
         int q;
 
-        q = 0;
-        while(q < g_size) {
+        q = -1;
+        while(++q < g_size)
+        {
             check_label(g_mat[q].laba);
             if (g_mat[q].instr == NULL)
-                return;
+                continue ;
             set_instr(g_mat[q].instr);
             temp = set_acb(g_mat[q].acb);
             set_arg(g_mat[q].arg1, temp >> 6 & 0x3);
             set_arg(g_mat[q].arg2, temp >> 4 & 0x3);
             set_arg(g_mat[q].arg3, temp >> 2 & 0x3);
-            g_ip = i;
-            test[p_test] = i;
+            g_ip = g_i;
+            test[p_test] = g_i;
             p_test++;
-            q++;
         }
 }
 
-void    print_struct(void)
+void    print_struct2(void)
 {
     int i = -1;
     while(++i < g_fi)
@@ -205,19 +194,19 @@ void    insert_labels(void)
         j = -1;
         while (++j < g_fi)
         {
-            if(!(strcmp(g_search[temp].str, g_found[j].str)))
+            if(!(ft_strcmp(g_search[temp].str, g_found[j].str)))
             {
                 if(g_search[temp].off == 2)
                 {
-                    a[g_search[temp].loc] = (g_found[j].loc - g_search[temp].start) >> 8 & 0xff;
-                    a[g_search[temp].loc + 1] = (g_found[j].loc - g_search[temp].start) & 0xff;
+                    g_a[g_search[temp].loc] = (g_found[j].loc - g_search[temp].start) >> 8 & 0xff;
+                    g_a[g_search[temp].loc + 1] = (g_found[j].loc - g_search[temp].start) & 0xff;
                 }
                 else
                 {
-                    a[g_search[temp].loc] = (g_found[j].loc - g_search[temp].start) >> 24 & 0xff;
-                    a[g_search[temp].loc + 1] = (g_found[j].loc - g_search[temp].start) >> 16 & 0xff;
-                    a[g_search[temp].loc + 2] = (g_found[j].loc - g_search[temp].start) >> 8 & 0xff;
-                    a[g_search[temp].loc + 3] = (g_found[j].loc - g_search[temp].start) & 0xff;
+                    g_a[g_search[temp].loc] = (g_found[j].loc - g_search[temp].start) >> 24 & 0xff;
+                    g_a[g_search[temp].loc + 1] = (g_found[j].loc - g_search[temp].start) >> 16 & 0xff;
+                   g_a[g_search[temp].loc + 2] = (g_found[j].loc - g_search[temp].start) >> 8 & 0xff;
+                    g_a[g_search[temp].loc + 3] = (g_found[j].loc - g_search[temp].start) & 0xff;
                 }
                 break;
             }

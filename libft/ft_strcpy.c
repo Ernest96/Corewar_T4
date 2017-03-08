@@ -16,6 +16,8 @@ char	*ft_strcpy(char *s1, const char *s2)
 {
 	char *s;
 
+	if (s1 == NULL || s2 == NULL)
+		return (s1);
 	s = s1;
 	while ((*s++ = *s2++) != 0)
 		;

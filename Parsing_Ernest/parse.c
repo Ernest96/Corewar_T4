@@ -16,17 +16,74 @@
 #define CH_1 char ** words; int8_t seek = 1;
 #define CH CH_1 static int8_t flags[3] = {0, 0, 0};
 
-char *g_instr[] = {"", "live", "ld", "st", "add", "sub", "and", "or",
-							"xor", "zjmp", "ldi", "sti", "fork", "lld",
-							"lldi", "lfork","aff"};
+void	ft_init_1(void)
+{
+	g_instr = (char**)malloc(sizeof(char*) * 17);
+	g_instr[0] = ft_strdup("");
+	g_instr[1] = ft_strdup("live");
+	g_instr[2] = ft_strdup("ld");
+	g_instr[3] = ft_strdup("st");
+	g_instr[4] = ft_strdup("add");
+	g_instr[5] = ft_strdup("sub");
+	g_instr[6] = ft_strdup("and");
+	g_instr[7] = ft_strdup("or");
+	g_instr[8] = ft_strdup("xor");
+	g_instr[9] = ft_strdup("zjmp");
+	g_instr[10] = ft_strdup("ldi");
+	g_instr[11] = ft_strdup("sti");
+	g_instr[12] = ft_strdup("fork");
+	g_instr[13] = ft_strdup("lld");
+	g_instr[14] = ft_strdup("lldi");
+	g_instr[15] = ft_strdup("lfork");
+	g_instr[16] = ft_strdup("aff");
+}
 
-int8_t g_par[] = {-1, 1, 2, 2, 3, 3, 3, 3, 3, 1, 3, 3, 1, 2, 3, 1, 1};
+void	ft_init_2(void)
+{
+	g_sabl = (char**)malloc(sizeof(char*) * 17);
+	g_sabl[0] = ft_strdup("");
+	g_sabl[1] = ft_strdup("010000000");
+	g_sabl[2] = ft_strdup("011100000");
+	g_sabl[3] = ft_strdup("100101000");
+	g_sabl[4] = ft_strdup("100100100");
+	g_sabl[5] = ft_strdup("100100100");
+	g_sabl[6] = ft_strdup("111111100");
+	g_sabl[7] = ft_strdup("111111100");
+	g_sabl[8] = ft_strdup("111111100");
+	g_sabl[9] = ft_strdup("010000000");
+	g_sabl[10] = ft_strdup("111110100");
+	g_sabl[11] = ft_strdup("100111110");
+	g_sabl[12] = ft_strdup("010000000");
+	g_sabl[13] = ft_strdup("011100000");
+	g_sabl[14] = ft_strdup("111110100");
+	g_sabl[15] = ft_strdup("010000000");
+	g_sabl[16] = ft_strdup("100000000");
+}
 
-char *g_sabl[] = {"", "010000000", "011100000", "100101000", "100100100",
-						  "100100100", "111111100", "111111100", "111111100",
-						  "010000000", "111110100", "100111110", "010000000",
-						  "011100000", "111110100", "010000000", "100000000"};
-
+void ft_init_3(void)
+{
+	g_name = (char*)malloc(sizeof(char) * 129);
+	g_comment = (char*)malloc(sizeof(char) * 2049);
+	ft_bzero(g_name, 129);
+	ft_bzero(g_comment, 2049);
+	g_par[0] = -1;
+	g_par[1] = 1;
+	g_par[2] = 2;
+	g_par[3] = 2;
+	g_par[4] = 3;
+	g_par[5] = 3;
+	g_par[6] = 3;
+	g_par[7] = 3;
+	g_par[8] = 3;
+	g_par[9] = 1;
+	g_par[10] = 3;
+	g_par[11] = 3;
+	g_par[12] = 1;
+	g_par[13] = 2;
+	g_par[14] = 3;
+	g_par[15] = 1;
+	g_par[16] = 1;
+}
 
 int8_t	ft_check_instr(char *instr, int *i)
 {
@@ -40,7 +97,7 @@ int8_t	ft_check_instr(char *instr, int *i)
 	return (0);
 }
 
-void	print_struct()
+void	print_struct(void)
 {
 	for (int i = 0; i < g_size; ++i)
 	{
@@ -294,7 +351,7 @@ void	free_words(char ***words)
 
 void	ft_init_name_comment(int8_t *f, char *to_in, int8_t *seek, char *s)
 {
-	free(to_in);
+	(void)to_in;
 	*f = 1;
 	g_offset += ft_strlen(s) + 1;
 	*seek = 0;
@@ -312,14 +369,16 @@ void	ft_check_name_comment(char **s, int fd)
 		if (flags[0])
 			ft_comp_error();
 		ft_init_name_comment(flags, g_name, &seek, *s);
-		g_name = ft_strdup(words[1]);
+		ft_strcpy(g_name, words[1]);
 	}
 	else if (ft_strcmp(words[0], ".comment") == 0)
 	{
 		if (flags[1])
 			ft_comp_error();
 		ft_init_name_comment(flags + 1, g_comment, &seek, *s);
-		g_comment = ft_strdup(words[1]);
+		printf("e bun\n");
+
+		ft_strcpy(g_comment, words[1]);
 	}
 	free_words(&words);
 	if (seek)
@@ -431,10 +490,7 @@ void	ft_check_stack(void)
 				++flag;
 		}
 		if (flag != 1)
-		{
-			printf("flag = %d\n",flag);
 			ft_labe_error("Invalid label adresation");
-		}
 	}
 }
 
@@ -444,13 +500,33 @@ void	ft_find_label(void)
 	ft_check_stack();
 }
 
+void	dump(char *file)
+{
+	int fd1;
+	unsigned int magic;
+
+	magic = 0xf383ea00;
+	fd1 = open(file, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+    if (fd1 == -1) {
+        perror("File cannot be opened");
+      	return ;
+    }
+    write(fd1, &magic, 4);
+    write(fd1, g_name, 128);
+    write(fd1, g_comment, 2048);
+    write(fd1, g_a, g_i);
+ }
+
 int	main(int argc, char **argv)
 { 
 	int	fd;
 	char *line;
 	char **words;
-	//header_t header;
 
+	(void)argc;
+	ft_init_1();
+	ft_init_2();
+	ft_init_3();
 	g_top = 0;
 	if (argc != 2)
 		ft_usage();
@@ -472,14 +548,24 @@ int	main(int argc, char **argv)
 		free_words(&words);
 		ft_skip_spaces(&fd);
 	}
+	printf("ee\n");
 	ft_putstr("name: ");
 	ft_putstr(g_name);
 	ft_putchar('\n');
 	ft_putstr("comment: ");
 	ft_putstr(g_comment);
+	printf("aaa\n");
 	ft_putchar('\n');
-	printf("____________\n");
 	ft_find_label();
 	print_struct();
 	ft_putchar('\n');
+	
+	codify();
+    insert_labels();
+    printf("g_i = %d\n",g_i);
+    printf("g_ip = %d\n",g_ip);
+    print();
+    line = ft_strdup(argv[1]);
+    line[ft_strlen(line) - 1] = 0;
+    dump(ft_strjoin(line, "cor"));
 }
