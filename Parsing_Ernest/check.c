@@ -1,6 +1,18 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   check.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ebitca <marvin@42.fr>                      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2017/03/09 18:36:38 by ebitca            #+#    #+#             */
+/*   Updated: 2017/03/09 18:37:47 by ebitca           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../corewar.h"
 
-int	ft_check_dir(char **words, int8_t flag)
+int		ft_check_dir(char **words, int8_t flag)
 {
 	int flag2;
 
@@ -10,9 +22,9 @@ int	ft_check_dir(char **words, int8_t flag)
 		if (words[0][0] == '.')
 		{
 			if (!(!ft_strcmp(words[0], ".name") ||
-					!ft_strcmp(words[0], ".comment")))
+						!ft_strcmp(words[0], ".comment")))
 				ft_comp_error();
-			else 
+			else
 				flag2 = 1;
 		}
 	}
@@ -21,7 +33,7 @@ int	ft_check_dir(char **words, int8_t flag)
 	while (*words != NULL)
 	{
 		if (**words == '.')
-		   ft_comp_error();
+			ft_comp_error();
 		++words;
 	}
 	return (flag2);
