@@ -1,45 +1,68 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "../corewar.h"
 #define memsize 4096
 #define CYCLE_TO_DIE			1536
 #define CYCLE_DELTA				50
 
-typedef	struct	    s_mat
-{
-	char	        *laba;
-	char            *instr;
-	unsigned char   acb;
-	char	        *arg1;
-	char	        *arg2;
-	char	        *arg3;
-}				    t_mat;
+//typedef	struct	    s_mat
+//{
+//	char	        *laba;
+//	char            *instr;
+//	unsigned char   acb;
+//	char	        *arg1;
+//	char	        *arg2;
+//	char	        *arg3;
+//}				    t_mat;
 
 
-typedef	struct	    s_instr
-{
-	unsigned char   code;
-	unsigned char   acb;
-	unsigned int    arg1;
-	unsigned int    arg2;
-	unsigned int    arg3;
-}				    t_instr;
-
-typedef struct     s_proc
-{
-    char    reg[16];
-    int     pc;
-	int		ip;
-    int     carry;
-    int     live;
-}               t_proc;
+//typedef	struct	    s_instr
+//{
+//	unsigned char   code;
+//	unsigned char   acb;
+//	unsigned int    arg1;
+//	unsigned int    arg2;
+//	unsigned int    arg3;
+//}				    t_instr;
+//
+//typedef struct     s_proc
+//{
+//    char    reg[16];
+//    int     pc;
+//	int		ip;
+//    int     carry;
+//    int     live;
+//}               t_proc;
 
 t_proc  *processes;
 int     nr_proc;
 char    a[memsize];
 int     i = 0;
+
+
+//int             zjmp(t_instr instr, int i)
+//{
+//    if (instr.acb != 80)
+//        return (1);
+//    if (processes[i].carry == 0)
+//        return (0);
+//    processes[0].pc += (signed int)instr.arg1;
+//    processes[0].ip = processes[0].pc;
+//    return (0);
+//}
+//
+//int         live(t_instr instr, int i)
+//{
+//    if (instr.acb != 80)
+//        return (1);
+//    if(instr.arg1 == 0 || instr.arg1 > 4)
+//        return (1);
+//    processes[instr.arg1 - 1].live++;
+//    return(0);
+//}
 /*
-int				execute_instr(t_instr instr)
+int				execute_instr(t_instr instr, int i)
 {
 	unsigned char code;
 
@@ -61,7 +84,7 @@ int				execute_instr(t_instr instr)
 	else if (code == 8)
 		return (xor(instr));
 	else if (code == 9)
-		return (zjmp(instr));
+		return (zjmp(instr, i));
 	else if (code == 10)
 		return (ldi(instr));
 	else if (code == 11)
@@ -80,9 +103,19 @@ int				execute_instr(t_instr instr)
 }	
 */
 
-int				execute_instr(t_instr instr)
+int				execute_instr(t_instr instr, int i)
 {
-	printf("Instructiunea cu codul %d %d\n", instr.code, instr.acb);
+    (void)i;
+    if (instr.code == 9)
+    {
+        //printf("\n%d %d\n",processes[0].pc, (signed int)instr.arg1);
+        processes[0].pc += (signed int)instr.arg1;
+        processes[0].ip = processes[0].pc;
+        //printf("\n%d\n", processes[0].pc);
+    }
+
+	printf("Instructiunea cu codul %.2x %.2x |", instr.code, instr.acb);
+    printf("Arg1 %x, Arg2 %x, Arg3 %x\n", instr.arg1, instr.arg2, instr.arg3);
 	return (0);
 }
 
@@ -121,37 +154,60 @@ int		get_args(t_instr *instr, int i)
     unsigned int acb;
 
     acb = instr->acb;
-    if (instr->code >= 16 || acb <= 0 || acb > 3)
+    if (instr->code >= 16)
         return (1);
-    instr->arg1 = get_arg(acb >> 6 & 0xff, i);
-    instr->arg2 = get_arg(acb >> 4 & 0xff, i);
-    instr->arg3 = get_arg(acb >> 2 & 0xff, i);
-    return (execute_instr(*instr));
+    instr->arg1 = 0;
+    instr->arg2 = 0;
+    instr->arg3 = 0;
+    if (acb > 0xFC)
+        return 0;
+    if ((acb >> 6 & 0x3) == 0)
+        return 0;
+    else
+        instr->arg1 = get_arg(acb >> 6 & 0x3, i);
+    //printf("ACB = %x", (acb >> 4) & 0x3);
+    if (((acb >> 4) & 0x3) == 0)
+        return (execute_instr(*instr, i));
+    else
+        instr->arg2 = get_arg(acb >> 4 & 0x3, i);
+
+    if (((acb >> 2) & 0x3) == 0)
+        return (execute_instr(*instr, i));
+    else
+        instr->arg3 = get_arg(((acb >> 2) & 0x3), i);
+    return (execute_instr(*instr, i));
 }
 
 void    execute_proc()
 {
     int i;
+    int j;
 	int flag;
 
     i = 0;
+    j = 0;
 	flag = 0;
-    while (i < nr_proc)
+    while (++j < 5)
     {
-        t_instr   instr;
-        instr.code = a[processes[i].pc % memsize];
-        processes[i].ip++;
-        instr.acb = a[processes[i].pc % memsize];
-        processes[i].ip++;
-        flag = get_args(&instr, i);
-		if (flag == 0)
-			processes[i].pc = processes[i].ip;
-		else
-		{
-			printf("\nBIJJJA\n");
-			processes[i].pc++;
-		}
-        i++;
+        if(g_arr[j].name == NULL)
+            continue ;
+        i = 0;
+        while (i < g_arr[j].pr_n)
+        {
+            t_instr instr;
+            instr.code = a[g_arr[j].proc[i].ip % memsize];
+            g_arr[j].proc[i].ip++;
+            instr.acb = a[g_arr[j].proc[i].ip % memsize];
+            g_arr[j].proc[i].ip++;
+            flag = get_args(&instr, i);
+            if (flag == 0)
+                g_arr[j].proc[i].pc = g_arr[j].proc[i].ip;
+            else {
+                printf("\nBIJJJA\n");
+                g_arr[j].proc[i].pc++;
+            }
+            i++;
+        }
     }
 }
 
@@ -189,7 +245,7 @@ void    run()
     int nr_cycle;
     int alive;
 
-    nr_cycle = CYCLE_TO_DIE;
+    nr_cycle = 20;
     alive = 1;
     while (nr_cycle >= 0 && alive)
     {
@@ -202,16 +258,15 @@ void    run()
     }
 }
 
-int     main()
+int     ft_start()
 {
-	processes = (t_proc *)malloc(sizeof(t_proc));
-	bzero(processes[0].reg, 16);
-	processes[0].pc = 0;
-	processes[0].ip = 0;
-	processes[0].carry = 1;
-	processes[0].live = 0;
+//	processes = (t_proc *)malloc(sizeof(t_proc));
+//	bzero(processes[0].reg, 16);
+//	processes[0].pc = 0;
+//	processes[0].ip = 0;
+//	processes[0].carry = 1;
+//	processes[0].live = 0;
 
-	int i;
 	bzero(a, 4096);
 	nr_proc = 1;
 	a[0] = 0x0b;
@@ -246,4 +301,5 @@ int     main()
 	a[29] = 0xff;
 	a[30] = 0xfa;
     run();
+    return (0);
 }

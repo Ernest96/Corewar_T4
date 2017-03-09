@@ -23,12 +23,24 @@ int8_t str_is_num(char *s)
 void p_zero()
 {
 	int i;
+	int j;
 
 	i = 0;
 	while(++i < 5)
 	{
+		j = -1;
 		g_arr[i].nr = 0;
 		g_arr[i].name = NULL;
+		while(++j < 100)
+		{
+			ft_bzero(g_arr[i].proc[j].reg, 16);
+			g_arr[i].proc[j].reg[0] = i;
+			g_arr[i].proc[j].pc = 0;
+			g_arr[i].proc[j].ip = 0;
+			g_arr[i].proc[j].carry = 1;
+			g_arr[i].proc[j].live = 0;
+		}
+		g_arr[i].pr_n = 1;
 	}
 }
 
@@ -71,7 +83,7 @@ unsigned char *ft_read_name(int i)
 	if (fd < 0)
 	{
 		printf("%s\n\n",g_arr[i].name);
-		exit (0);
+		exit (21);
 	}
 	read(fd, temp, 2180);
 	while(read(fd, &c, 1))
@@ -162,6 +174,6 @@ int	main(int argc, char **argv)
 	}
 	ft_check_players();
 	insert_gamelife();
-	printf("e ok\n");
 	(void)dump;
+    ft_start();
 }
