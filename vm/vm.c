@@ -31,6 +31,7 @@ void p_zero()
 		j = -1;
 		g_arr[i].nr = 0;
 		g_arr[i].name = NULL;
+		g_arr[i].filename = NULL;
 		while(++j < 100)
 		{
 			ft_bzero(g_arr[i].proc[j].reg, 16);
@@ -56,6 +57,7 @@ void	ft_check_players()
 			++flag;
 	if (flag < 2)
 		exit(0);
+	g_num = flag;
 }
 
 void	set_null()
@@ -75,17 +77,22 @@ unsigned char *ft_read_name(int i)
 	char c;
 
 	g_j[i - 1] = 0;
-	if(g_arr[i].name == NULL)
+	if(g_arr[i].filename == NULL)
 		return (NULL);
 	s = (unsigned char*)malloc(sizeof(char)*4096);
 	ft_bzero(s, 4096);
-	fd = open(g_arr[i].name, O_RDONLY);
+	fd = open(g_arr[i].filename, O_RDONLY);
 	if (fd < 0)
 	{
-		printf("%s\n\n",g_arr[i].name);
+		printf("PUSSSSSYY%s\n\n",g_arr[i].filename);
 		exit (21);
 	}
-	read(fd, temp, 2180);
+	read(fd, temp, 4);
+	ft_bzero(temp, 4);
+	read(fd, temp, 128);
+	g_arr[i].name = ft_strdup(temp); 
+	read(fd, temp, 2048);
+	printf("AM citit name ca {%s} si commment {%s}\n", g_arr[i].name, temp);
 	while(read(fd, &c, 1))
 	{
 		s[g_j[i - 1]] = c;
@@ -100,14 +107,14 @@ void	print_order(void)
 	int j;
 
 	i = -1;
-	while (++i < 4)
+	while (++i < g_num)
 	{
 		j = -1;
-		printf("nume = %s\n instr:\n", g_arr[i + 1].name);
+		printf("\nnume = %s\ninstr: ", g_arr[i + 1].name);
 		while(++j < g_j[i])
 			printf("%.2x ",g_order[i][j]);
 	}
-
+	printf("\n\n");
 }
 
 void	insert_gamelife()
@@ -122,7 +129,31 @@ void	insert_gamelife()
 	print_order();
 }
 
-int	main(int argc, char **argv)
+void	load()
+{
+	int i;
+	int j;
+	int delta;
+	int offset;
+
+	i = -1;
+	delta = MEMSIZE / g_num;
+	offset = 0;
+	while (++i < g_num)
+	{
+		j = 0;
+		while (j < g_j[i])
+		{
+			g_mem[offset + j] = g_order[i][j];
+			j++;
+		}
+		g_arr[j].proc[0].pc = offset;
+		g_arr[j].proc[0].ip = offset;
+		offset += delta;
+	}
+}
+
+int 	main(int argc, char **argv)
 {
 	int8_t flag;
 	int i;
@@ -168,12 +199,13 @@ int	main(int argc, char **argv)
 			g_arr[p_n].nr = p_n;
 			if (ft_strcmp(argv[i + 2] + (ft_strlen(argv[i + 2]) - 4), ".cor"))
 				return (0);
-			g_arr[p_n].name = ft_strdup(argv[i+2]);
+			g_arr[p_n].filename = ft_strdup(argv[i+2]);
 			i += 2;
 		}
 	}
 	ft_check_players();
 	insert_gamelife();
 	(void)dump;
+	load();
     ft_start();
 }

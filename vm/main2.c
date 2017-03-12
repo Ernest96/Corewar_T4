@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../corewar.h"
-#define memsize 4096
 #define CYCLE_TO_DIE			1536
 #define CYCLE_DELTA				50
 
@@ -17,28 +16,12 @@
 //}				    t_mat;
 
 
-//typedef	struct	    s_instr
-//{
-//	unsigned char   code;
-//	unsigned char   acb;
-//	unsigned int    arg1;
-//	unsigned int    arg2;
-//	unsigned int    arg3;
-//}				    t_instr;
-//
-//typedef struct     s_proc
-//{
-//    char    reg[16];
-//    int     pc;
-//	int		ip;
-//    int     carry;
-//    int     live;
-//}               t_proc;
 
-t_proc  *processes;
+
+
+
 int     nr_proc;
-char    a[memsize];
-int     i = 0;
+char    a[MEMSIZE];
 
 
 //int             zjmp(t_instr instr, int i)
@@ -103,53 +86,53 @@ int				execute_instr(t_instr instr, int i)
 }	
 */
 
-int				execute_instr(t_instr instr, int i)
+int				execute_instr(t_instr instr, int juc, int procs)
 {
-    (void)i;
-    if (instr.code == 9)
+
+    /*if (instr.code == 9)
     {
         //printf("\n%d %d\n",processes[0].pc, (signed int)instr.arg1);
         processes[0].pc += (signed int)instr.arg1;
         processes[0].ip = processes[0].pc;
         //printf("\n%d\n", processes[0].pc);
     }
-
+    */
 	printf("Instructiunea cu codul %.2x %.2x |", instr.code, instr.acb);
     printf("Arg1 %x, Arg2 %x, Arg3 %x\n", instr.arg1, instr.arg2, instr.arg3);
 	return (0);
 }
 
-unsigned int	get_arg(unsigned char acb, int i)
+unsigned int	get_arg(unsigned char acb, int juc, int procs)
 {
     unsigned int result;
 
     if (acb == 1)
     {
-      	processes[i].ip++;
-        return (a[(processes[i].ip - 1) % memsize] & 0x000000FF);
+      	g_arr[juc].proc[procs].ip++;
+        return (g_mem[(g_arr[juc].proc[procs].ip - 1) % MEMSIZE] & 0x000000FF);
     }
     else if (acb == 2)
     {
         result = 0;
-        result = ((unsigned int)a[processes[i].ip % memsize]) << 24;
-        result = result | ((unsigned int)a[processes[i].ip + 1 % memsize]) << 16;
-        result = result | ((unsigned int)a[processes[i].ip + 2 % memsize]) << 8;
-        result = result | ((unsigned int)a[processes[i].ip + 3 % memsize]);
-        processes[i].ip += 4;
+        result = ((unsigned int)g_mem[g_arr[juc].proc[procs].ip % MEMSIZE]) << 24;
+        result = result | ((unsigned int)g_mem[g_arr[juc].proc[procs].ip + 1 % MEMSIZE]) << 16;
+        result = result | ((unsigned int)g_mem[g_arr[juc].proc[procs].ip + 2 % MEMSIZE]) << 8;
+        result = result | ((unsigned int)g_mem[g_arr[juc].proc[procs].ip + 3 % MEMSIZE]);
+        g_arr[juc].proc[procs].ip += 4;
         return (result);
     }
     else if (acb == 3)
     {
         result = 0;
-        result = ((unsigned int)a[processes[i].ip % memsize]) << 8;
-        result = result | ((unsigned int)a[processes[i].ip + 1 % memsize]);
-        processes[i].ip += 2;
+        result = ((unsigned int)g_mem[g_arr[juc].proc[procs].ip % MEMSIZE]) << 8;
+        result = result | ((unsigned int)g_mem[g_arr[juc].proc[procs].ip + 1 % MEMSIZE]);
+        g_arr[juc].proc[procs].ip += 2;
         return (result);
     }
     return (0);
 }
 
-int		get_args(t_instr *instr, int i)
+int		get_args(t_instr *instr, int juc , int proc)
 {
     unsigned int acb;
 
@@ -164,50 +147,42 @@ int		get_args(t_instr *instr, int i)
     if ((acb >> 6 & 0x3) == 0)
         return 0;
     else
-        instr->arg1 = get_arg(acb >> 6 & 0x3, i);
+        instr->arg1 = get_arg(acb >> 6 & 0x3, juc , proc);
     //printf("ACB = %x", (acb >> 4) & 0x3);
     if (((acb >> 4) & 0x3) == 0)
-        return (execute_instr(*instr, i));
+        return (execute_instr(*instr, juc, proc));
     else
-        instr->arg2 = get_arg(acb >> 4 & 0x3, i);
+        instr->arg2 = get_arg(acb >> 4 & 0x3, juc, proc);
 
     if (((acb >> 2) & 0x3) == 0)
-        return (execute_instr(*instr, i));
+        return (execute_instr(*instr, juc, proc));
     else
-        instr->arg3 = get_arg(((acb >> 2) & 0x3), i);
-    return (execute_instr(*instr, i));
+        instr->arg3 = get_arg(((acb >> 2) & 0x3), juc, proc);
+    return (execute_instr(*instr, juc, proc));
 }
 
-void    execute_proc()
+void    execute_proc(int j)
 {
     int i;
-    int j;
 	int flag;
 
-    i = 0;
-    j = 0;
 	flag = 0;
-    while (++j < 5)
+    i = 0;
+    while (i < g_arr[j].pr_n)
     {
-        if(g_arr[j].name == NULL)
-            continue ;
-        i = 0;
-        while (i < g_arr[j].pr_n)
-        {
-            t_instr instr;
-            instr.code = a[g_arr[j].proc[i].ip % memsize];
-            g_arr[j].proc[i].ip++;
-            instr.acb = a[g_arr[j].proc[i].ip % memsize];
-            g_arr[j].proc[i].ip++;
-            flag = get_args(&instr, i);
-            if (flag == 0)
-                g_arr[j].proc[i].pc = g_arr[j].proc[i].ip;
-            else {
-                printf("\nBIJJJA\n");
-                g_arr[j].proc[i].pc++;
-            }
-            i++;
+        t_instr instr;
+        instr.code = g_mem[g_arr[j].proc[i].ip % MEMSIZE];
+        g_arr[j].proc[i].ip++;
+        instr.acb = g_mem[g_arr[j].proc[i].ip % MEMSIZE];
+        g_arr[j].proc[i].ip++;
+        flag = get_args(&instr, j, i);
+        if (flag == 0)
+            g_arr[j].proc[i].pc = g_arr[j].proc[i].ip;
+        else {
+            printf("\nBIJJJA\n");
+            g_arr[j].proc[i].pc++;
         }
+        i++;
     }
 }
 
@@ -219,14 +194,14 @@ int		decrease_cycle(int *nr_cycle)
 
 	i = 0;
 	flag = 0;
-	while (i < nr_proc)
+	while (i < g_num)
 	{
-		if (processes[i].live >= 21)
+		if (g_arr[i].proc[0].live >= 21)
 		{
 			nr_cycle -= CYCLE_DELTA;
 			flag = 1;
 		}
-		processes[i].live = 0;
+        g_arr[i].proc[0].live = 0;
 		i++;
 	}
 	if (flag == 0)
@@ -244,17 +219,30 @@ void    run()
 	int	cyc;
     int nr_cycle;
     int alive;
+    int juc;
 
     nr_cycle = 20;
     alive = 1;
-    while (nr_cycle >= 0 && alive)
+    while (nr_cycle >= 0 )
     {
-        cyc = -1;
-        while (++cyc < nr_cycle)
-        {
-            execute_proc();
+        juc = 0;
+        while (++juc <= g_num) {
+            //printf("\nJUCATOR cu nr %d\n", juc);
+            execute_proc(juc);
         }
         alive = decrease_cycle(&nr_cycle);
+    }
+}
+
+void    print_mem() {
+    int i = 0;
+    while (i < MEMSIZE)
+    {
+        if ((i % 32 )== 0 && i != 0)
+            printf("\n");
+        printf("%.2x ", g_mem[i]);
+        //printf("gagag");
+        i++;
     }
 }
 
@@ -266,40 +254,42 @@ int     ft_start()
 //	processes[0].ip = 0;
 //	processes[0].carry = 1;
 //	processes[0].live = 0;
-
-	bzero(a, 4096);
-	nr_proc = 1;
-	a[0] = 0x0b;
-	a[1] = 0x68;
-	a[2] = 0x01;
-	a[3] = 0x00;
-	a[4] = 0x00;
-	a[5] = 0x00;
-	a[6] = 0x13;
-	a[7] = 0x00;
-	a[8] = 0x00;
-	a[9] = 0x00;
-	a[10] = 0x01;
-	a[11] = 0x06;
-	a[12] = 0x64;
-	a[13] = 0x01;
-	a[14] = 0x00;
-	a[15] = 0x00;
-	a[16] = 0x00;
-	a[17] = 0x00;
-	a[18] = 0x01;
-	a[19] = 0x01;
-	a[20] = 0x80;
-	a[21] = 0x00;
-	a[22] = 0x00;
-	a[23] = 0x00;
-	a[24] = 0x01;
-	a[25] = 0x09;
-	a[26] = 0x80;
-	a[27] = 0xff;
-	a[28] = 0xff;
-	a[29] = 0xff;
-	a[30] = 0xfa;
+//
+//
+//	nr_proc = 1;
+//	a[0] = 0x0b;
+//	a[1] = 0x68;
+//	a[2] = 0x01;
+//	a[3] = 0x00;
+//	a[4] = 0x00;
+//	a[5] = 0x00;
+//	a[6] = 0x13;
+//	a[7] = 0x00;
+//	a[8] = 0x00;
+//	a[9] = 0x00;
+//	a[10] = 0x01;
+//	a[11] = 0x06;
+//	a[12] = 0x64;
+//	a[13] = 0x01;
+//	a[14] = 0x00;
+//	a[15] = 0x00;
+//	a[16] = 0x00;
+//	a[17] = 0x00;
+//	a[18] = 0x01;
+//	a[19] = 0x01;
+//	a[20] = 0x80;
+//	a[21] = 0x00;
+//	a[22] = 0x00;
+//	a[23] = 0x00;
+//	a[24] = 0x01;
+//	a[25] = 0x09;
+//	a[26] = 0x80;
+//	a[27] = 0xff;
+//	a[28] = 0xff;
+//	a[29] = 0xff;
+//	a[30] = 0xfa;
+    //bzero(g_mem, 4096);
+    //print_mem();
     run();
     return (0);
 }

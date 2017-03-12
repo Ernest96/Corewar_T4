@@ -62,12 +62,36 @@ typedef struct 	s_pos
 	int 	off;
 }					t_pos;
 
+typedef struct     s_proc
+{
+   char    reg[16];
+   int     pc;
+	int		ip;
+   int     carry;
+   int     live;
+}               t_proc;
+
 typedef struct 		s_player
 {
+	t_proc proc[100];
+	int pr_n;
 	int nr;
+	char *filename;
 	char *name;
 }					t_player;
 
+typedef	struct	    s_instr
+{
+	unsigned char   code;
+	unsigned char   acb;
+	unsigned int    arg1;
+	unsigned int    arg2;
+	unsigned int    arg3;
+}				    t_instr;
+
+
+
+int8_t 				g_num;
 char 				*g_name;
 char 				*g_comment;
 char 				**g_sabl;
@@ -81,6 +105,7 @@ int 				g_size;
 int 				g_top;
 int					g_j[4];
 int8_t 				g_can;
+unsigned char       g_mem[MEMSIZE];
 unsigned char       g_a[MEMSIZE];
 int                 g_i;
 int                 g_ip;

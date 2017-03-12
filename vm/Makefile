@@ -2,7 +2,7 @@ NAME = corewar
 
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror
-SRC = *.c ../libft/*.c
+SRC = vm.c ../libft/*.c
 
 OBJ = *.o
 
