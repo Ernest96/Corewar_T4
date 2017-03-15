@@ -6,7 +6,7 @@
 /*   By: ebitca <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/03/02 17:06:44 by ebitca            #+#    #+#             */
-/*   Updated: 2017/03/05 15:51:37 by ebitca           ###   ########.fr       */
+/*   Updated: 2017/03/15 18:25:58 by ebitca           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,4 +64,10 @@ int		main(int argc, char **argv)
 	line = ft_strdup(argv[1]);
 	line[ft_strlen(line) - 1] = 0;
 	dump(ft_strjoin(line, "cor"));
+	for(int h=0; h<g_i; h++)
+	{
+		printf("%.2x ", g_a[h]);
+		if(h % 50 == 0)
+			printf("\n");
+	}
 }

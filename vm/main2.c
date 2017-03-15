@@ -35,27 +35,67 @@ char    a[MEMSIZE];
 //    return (0);
 //}
 //
-//int         live(t_instr instr, int i)
-//{
-//    if (instr.acb != 80)
-//        return (1);
-//    if(instr.arg1 == 0 || instr.arg1 > 4)
-//        return (1);
-//    processes[instr.arg1 - 1].live++;
-//    return(0);
-//}
-/*
-int				execute_instr(t_instr instr, int i)
+
+int         live(t_instr instr, int juc ,int procs)
+{
+    if (instr.acb != 0x80)
+        return (1);
+    if(instr.arg1 == 0 || instr.arg1 > 4)
+        return (1);
+    g_arr[juc].proc[procs].live++;
+
+    return (0);
+}
+
+int         ld(t_instr instr, int juc, int procs)
+{
+    if (instr.acb != 0x90 && instr.acb != 0xD0)
+        return (1);
+    if (instr.arg2 <= 0 || instr.arg2 > 16)
+        return (1);
+    g_arr[juc].proc[procs].reg[instr.arg2 - 1] = (unsigned)instr.arg1;
+    return (0);
+}
+
+int         st(t_instr instr, int juc ,int procs)
+{
+    if (instr.acb != 0x50 && instr.acb != 0x70)
+        return (1);
+    if (instr.arg1 > 16 || instr.arg1 <= 0)
+        return (1);
+    if (((instr.acb >> 4 & 0x3) == 1) && (instr.arg2 > 16 || instr.arg2 <= 0))
+        return (1);
+    if ((instr.acb >> 4 & 0x3) == 1)
+        g_arr[juc].proc[procs].reg[instr.arg2 - 1] =
+                g_arr[juc].proc[procs].reg[instr.arg1 - 1];
+    else
+    {
+        g_mem[g_arr[juc].proc[procs].pc + (instr.arg2 % IDX_MOD)] = 1;// g_arr[juc].proc[procs].reg[instr.arg1] >> 24 & 0xff;
+        g_mem[g_arr[juc].proc[procs].pc + (instr.arg2 % IDX_MOD) + 1] =  1;//g_arr[juc].proc[procs].reg[instr.arg1] >> 16 & 0xff;
+        g_mem[g_arr[juc].proc[procs].pc + (instr.arg2 % IDX_MOD) + 2] =  1;//g_arr[juc].proc[procs].reg[instr.arg1] >> 8 & 0xff;
+        g_mem[g_arr[juc].proc[procs].pc + (instr.arg2 % IDX_MOD) + 3] =  1; //g_arr[juc].proc[procs].reg[instr.arg1] & 0xff;
+    }
+    return 0;
+}
+int				execute_instr(t_instr instr, int juc, int procs)
 {
 	unsigned char code;
 
-	code = instr.code;
+    code = instr.code;
+    printf("Jucatorul %d\t",g_arr[juc].nr);
+	printf("Instructiunea cu codul %.2x %.2x |", instr.code, instr.acb);
+    printf("Arg1 %x, Arg2 %x, Arg3 %x\t\t", instr.arg1, instr.arg2, instr.arg3);
+    for (int i = 0; i < 16; i++)
+        printf("%d | ", g_arr[juc].proc->reg[i]);
+    printf("\n");
+
 	if (code == 1)
-		return (live(instr));
+		return (live(instr, juc, procs));
 	else if (code == 2)
-		return (ld(instr));
-	else if (code == 3)
-		return (st(instr));
+		return (ld(instr, juc, procs));
+    else if (code == 3)
+		return (st(instr, juc, procs));
+        /*
 	else if (code == 4)
 		return (add(intstr));
 	else if (code == 5)
@@ -81,30 +121,31 @@ int				execute_instr(t_instr instr, int i)
 	else if (code == 15)
 		return lfork(instr);
 	else if (code == 16)
-		return (aff(instr));
-	return (1);
-}	
-*/
+		return (aff(instr));*/
 
-int				execute_instr(t_instr instr, int juc, int procs)
-{
-
-    /*if (instr.code == 9)
-    {
-        //printf("\n%d %d\n",processes[0].pc, (signed int)instr.arg1);
-        processes[0].pc += (signed int)instr.arg1;
-        processes[0].ip = processes[0].pc;
-        //printf("\n%d\n", processes[0].pc);
-    }
-    */
-	printf("Instructiunea cu codul %.2x %.2x |", instr.code, instr.acb);
-    printf("Arg1 %x, Arg2 %x, Arg3 %x\n", instr.arg1, instr.arg2, instr.arg3);
 	return (0);
 }
 
-unsigned int	get_arg(unsigned char acb, int juc, int procs)
+//int				execute_instr(t_instr instr, int juc, int procs)
+//{
+//
+//    if (instr.code == 9)
+//    {
+//        //printf("\n%d %d\n",processes[0].pc, (signed int)instr.arg1);
+//        processes[0].pc += (signed int)instr.arg1;
+//        processes[0].ip = processes[0].pc;
+//        //printf("\n%d\n", processes[0].pc);
+//    }
+//
+//    printf("Jucatorul %d\t",g_arr[juc].nr);
+//	printf("Instructiunea cu codul %.2x %.2x |", instr.code, instr.acb);
+//    printf("Arg1 %x, Arg2 %x, Arg3 %x\n", instr.arg1, instr.arg2, instr.arg3);
+//	return (0);
+//}
+
+int	get_arg(unsigned char acb, int juc, int procs)
 {
-    unsigned int result;
+    int result;
 
     if (acb == 1)
     {
@@ -178,9 +219,16 @@ void    execute_proc(int j)
         flag = get_args(&instr, j, i);
         if (flag == 0)
             g_arr[j].proc[i].pc = g_arr[j].proc[i].ip;
-        else {
+        else
+        {
             printf("\nBIJJJA\n");
             g_arr[j].proc[i].pc++;
+            g_arr[j].proc[i].ip = g_arr[j].proc[i].pc;
+        }
+        if (g_arr[j].proc[i].pc >= g_arr[j].proc[i].end) {
+            g_arr[j].proc[i].pc = g_arr[j].proc[i].begin;
+            g_arr[j].proc[i].ip = g_arr[j].proc[i].begin;
+            printf("resetare la jucatorul %d", j);
         }
         i++;
     }
@@ -190,19 +238,25 @@ int		decrease_cycle(int *nr_cycle)
 {
     static int	count;
 	int			i;
+    int         j;
 	int			flag;
 
 	i = 0;
 	flag = 0;
-	while (i < g_num)
+	while (++i <= 4)
 	{
-		if (g_arr[i].proc[0].live >= 21)
-		{
-			nr_cycle -= CYCLE_DELTA;
-			flag = 1;
-		}
+        if (g_arr[i].filename == NULL)
+            continue ;
+        j = -1;
+        while (++j < g_arr[i].pr_n)
+        {
+		    if (g_arr[i].proc[j].live >= 21)
+		    {
+			    nr_cycle -= CYCLE_DELTA;
+			    flag = 1;
+		    }
+        }
         g_arr[i].proc[0].live = 0;
-		i++;
 	}
 	if (flag == 0)
     	count++;
@@ -212,26 +266,6 @@ int		decrease_cycle(int *nr_cycle)
         count = 0;
     }
 	return (flag);
-}
-
-void    run()
-{
-	int	cyc;
-    int nr_cycle;
-    int alive;
-    int juc;
-
-    nr_cycle = 20;
-    alive = 1;
-    while (nr_cycle >= 0 )
-    {
-        juc = 0;
-        while (++juc <= g_num) {
-            //printf("\nJUCATOR cu nr %d\n", juc);
-            execute_proc(juc);
-        }
-        alive = decrease_cycle(&nr_cycle);
-    }
 }
 
 void    print_mem() {
@@ -245,6 +279,33 @@ void    print_mem() {
         i++;
     }
 }
+void    run()
+{
+	int	cyc;
+    int nr_cycle;
+    int alive;
+    int juc;
+
+    nr_cycle = 10;
+    alive = 1;
+    while (nr_cycle >= 0 )
+    {
+        juc = 0;
+        while (++juc <= 5)
+        {
+            if (g_arr[juc].filename == NULL)
+                continue ;
+            //printf("\nJUCATOR cu nr %d\n", juc);
+            execute_proc(juc);
+            if (juc == 2)
+                print_mem();
+        }
+        //alive = decrease_cycle(&nr_cycle);
+        nr_cycle--;
+    }
+}
+
+
 
 int     ft_start()
 {
@@ -289,7 +350,7 @@ int     ft_start()
 //	a[29] = 0xff;
 //	a[30] = 0xfa;
     //bzero(g_mem, 4096);
-    //print_mem();
+    print_mem();
     run();
     return (0);
 }

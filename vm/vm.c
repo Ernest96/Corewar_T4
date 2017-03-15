@@ -40,6 +40,8 @@ void p_zero()
 			g_arr[i].proc[j].ip = 0;
 			g_arr[i].proc[j].carry = 1;
 			g_arr[i].proc[j].live = 0;
+            g_arr[i].proc[j].begin = 0;
+            g_arr[i].proc[j].end = 0;
 		}
 		g_arr[i].pr_n = 1;
 	}
@@ -57,7 +59,7 @@ void	ft_check_players()
 			++flag;
 	if (flag < 2)
 		exit(0);
-	g_num = flag;
+    g_num = flag;
 }
 
 void	set_null()
@@ -98,6 +100,7 @@ unsigned char *ft_read_name(int i)
 		s[g_j[i - 1]] = c;
 		++g_j[i - 1];
 	}
+
 	return (s);
 }
 
@@ -107,7 +110,7 @@ void	print_order(void)
 	int j;
 
 	i = -1;
-	while (++i < g_num)
+	while (++i < 5)
 	{
 		j = -1;
 		printf("\nnume = %s\ninstr: ", g_arr[i + 1].name);
@@ -136,19 +139,26 @@ void	load()
 	int delta;
 	int offset;
 
-	i = -1;
+	i = 0;
 	delta = MEMSIZE / g_num;
 	offset = 0;
-	while (++i < g_num)
+	while (++i < 5)
 	{
 		j = 0;
-		while (j < g_j[i])
+        if (g_arr[i].filename == NULL) {
+            printf("continue la %d\n", i);
+            continue;
+        }
+		while (j < g_j[i - 1])
 		{
-			g_mem[offset + j] = g_order[i][j];
+			g_mem[offset + j] = g_order[i - 1][j];
 			j++;
 		}
-		g_arr[j].proc[0].pc = offset;
-		g_arr[j].proc[0].ip = offset;
+
+		g_arr[i].proc[0].pc = offset;
+		g_arr[i].proc[0].ip = offset;
+        g_arr[i].proc[0].begin = offset;
+        g_arr[i].proc[0].end = offset + j - 1;
 		offset += delta;
 	}
 }
@@ -207,5 +217,6 @@ int 	main(int argc, char **argv)
 	insert_gamelife();
 	(void)dump;
 	load();
+    //print_order();
     ft_start();
 }

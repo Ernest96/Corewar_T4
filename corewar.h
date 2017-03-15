@@ -43,6 +43,7 @@
 #define ELSE_RET0	else return(0);
 #define VAR 		int	fd; char *line; char **words;
 #define MEMSIZE 	4096
+#define IDX_MOD		MEMSIZE/8
 
 typedef	struct		s_mat
 {
@@ -64,11 +65,13 @@ typedef struct 	s_pos
 
 typedef struct     s_proc
 {
-   char    reg[16];
+   int    reg[16];
    int     pc;
 	int		ip;
    int     carry;
    int     live;
+   int      end;
+   int     	begin;
 }               t_proc;
 
 typedef struct 		s_player
@@ -84,9 +87,9 @@ typedef	struct	    s_instr
 {
 	unsigned char   code;
 	unsigned char   acb;
-	unsigned int    arg1;
-	unsigned int    arg2;
-	unsigned int    arg3;
+	int    arg1;
+	int    arg2;
+	int    arg3;
 }				    t_instr;
 
 
