@@ -5,36 +5,57 @@
 #define CYCLE_TO_DIE			1536
 #define CYCLE_DELTA				50
 
-//typedef	struct	    s_mat
-//{
-//	char	        *laba;
-//	char            *instr;
-//	unsigned char   acb;
-//	char	        *arg1;
-//	char	        *arg2;
-//	char	        *arg3;
-//}				    t_mat;
+
+
+//de testat ldi
 
 
 
+int             zjmp(t_instr instr, int juc, int procs)
+{
+    if (instr.acb != 0x80)
+        return (1);
+    if (g_arr[juc].proc[procs].carry == 0)
+        return (0);
+    g_arr[juc].proc[procs].pc = (g_arr[juc].proc[procs].pc + instr.arg1) % MEMSIZE;
+    g_arr[juc].proc[procs].ip = g_arr[juc].proc[procs].pc;
+    return (0);
+}
 
+int         add(t_instr instr, int juc, int procs)
+{
+    int res;
 
+    if (instr.acb != 0x54)
+        return (1);
+    if (instr.arg1 <= 0 || instr.arg1 > 16)
+        return (1);
+    if (instr.arg2 <= 0 || instr.arg2 > 16)
+        return (1);
+    if (instr.arg3 <= 0 || instr.arg3 > 16)
+        return (1);
+    res = g_arr[juc].proc[procs].reg[instr.arg1 - 1] + g_arr[juc].proc[procs].reg[instr.arg2 - 1];
+    g_arr[juc].proc[procs].reg[instr.arg3 - 1] = res;
+    return (0);
+}
 
-int     nr_proc;
-char    a[MEMSIZE];
+int         sub(t_instr instr, int juc, int procs)
+{
+    int res;
 
+    if (instr.acb != 0x54)
+        return (1);
+    if (instr.arg1 <= 0 || instr.arg1 > 16)
+        return (1);
+    if (instr.arg2 <= 0 || instr.arg2 > 16)
+        return (1);
+    if (instr.arg3 <= 0 || instr.arg3 > 16)
+        return (1);
+    res = g_arr[juc].proc[procs].reg[instr.arg1 - 1] - g_arr[juc].proc[procs].reg[instr.arg2 - 1];
+    g_arr[juc].proc[procs].reg[instr.arg3 - 1] = res;
+    return (0);
+}
 
-//int             zjmp(t_instr instr, int i)
-//{
-//    if (instr.acb != 80)
-//        return (1);
-//    if (processes[i].carry == 0)
-//        return (0);
-//    processes[0].pc += (signed int)instr.arg1;
-//    processes[0].ip = processes[0].pc;
-//    return (0);
-//}
-//
 
 int         live(t_instr instr, int juc ,int procs)
 {
@@ -53,7 +74,94 @@ int         ld(t_instr instr, int juc, int procs)
         return (1);
     if (instr.arg2 <= 0 || instr.arg2 > 16)
         return (1);
-    g_arr[juc].proc[procs].reg[instr.arg2 - 1] = (unsigned)instr.arg1;
+    g_arr[juc].proc[procs].reg[instr.arg2 - 1] = (unsigned)instr.arg1;//poate fi ups
+    return (0);
+}
+
+int         ldi(t_instr instr, int juc ,int procs)
+{
+    int result;
+    int val1;
+    int val2;
+    int val3;
+
+    if (instr.acb >> 6 == 0)
+        return (1);
+    if ((instr.acb >> 4 & 0x3) == 0 || (instr.acb >> 4 & 0x3) == 3)
+        return (1);
+    if ((instr.acb >> 2 & 0x3) != 1 )
+        return (1);
+    if (instr.acb & 0x3 != 0)
+        return (1);
+    if (instr.acb >> 6 == 1 && (instr.arg1 <= 0 || instr.arg1 > 16))
+        return (1);
+    if ((instr.acb >> 4 & 0x3) == 1 && (instr.arg2 <= 0 || instr.arg2 > 16))
+        return (1);
+    if ((instr.acb >> 2 & 0x3) == 1 && (instr.arg3 <= 0 || instr.arg3 > 16))
+        return (1);
+    if (instr.acb >> 6 == 1)
+        val1 = g_arr[juc].proc[procs].reg[instr.arg1 - 1];
+    else if (instr.acb >> 6 == 2)
+        val1 = instr.arg1;
+    else
+    {
+        val1 = g_mem[g_arr[juc].proc[procs].pc + (instr.arg1 % IDX_MOD)] >> 8;
+        val1 = val1 | g_mem[g_arr[juc].proc[procs].pc + ((instr.arg1 + 1) % IDX_MOD)];
+    }
+    if ((instr.acb >> 4 & 0x3) == 1 )
+        val2 = g_arr[juc].proc[procs].reg[instr.arg2 - 1];
+    else
+        val2 = instr.arg2;
+    val3 = val1 + val2;
+    result = ((unsigned int)g_mem[g_arr[juc].proc[procs].pc + (val3 % IDX_MOD)]) << 24;
+    result = result | ((unsigned int)g_mem[g_arr[juc].proc[procs].pc + 1 + (val3 % IDX_MOD)]) << 16;
+    result = result | ((unsigned int)g_mem[g_arr[juc].proc[procs].pc + 2  + (val3 % IDX_MOD)]) << 8;
+    result = result | ((unsigned int)g_mem[g_arr[juc].proc[procs].pc + 3 + (val3 % IDX_MOD)]);
+    g_arr[juc].proc[procs].reg[instr.arg3 - 1] = result;
+    return (0);
+
+}
+
+int         sti(t_instr instr, int juc, int procs)
+{
+    int res;
+    int val1;
+    int val2;
+    int val3;
+
+    if(instr.acb >> 6 != 1)
+        return(1);
+    if(instr.arg1 <= 0 || instr.arg1 > 16)
+        return(1);
+    if((instr.acb >> 4 & 0x3) == 0)
+        return(1);
+    if((instr.acb & 0x3) != 0)
+        return(1);
+    if((instr.acb >> 2 & 0x3) == 0 || (instr.acb >> 2 & 0x3) == 3)
+        return(1);
+    if ((instr.acb >> 4 & 0x3) == 1 && (instr.arg2 <= 0 || instr.arg2 > 16))
+        return (1);
+    if ((instr.acb >> 2 & 0x3) == 1 && (instr.arg3 <= 0 || instr.arg3 > 16))
+        return (1);
+    if ((instr.acb >> 4 & 0x3) == 1 )
+        val1 = g_arr[juc].proc[procs].reg[instr.arg2 - 1];
+    else if ((instr.acb >> 4 & 0x03) == 2)
+        val1 = instr.arg2;
+    else
+    {
+        val1 = g_mem[g_arr[juc].proc[procs].pc + (instr.arg2 % IDX_MOD)] >> 8;
+        val1 = val1 | g_mem[g_arr[juc].proc[procs].pc + ((instr.arg2 + 1) % IDX_MOD)];
+    }
+    if ((instr.acb >> 2 & 0x3) == 1 )
+        val2 = g_arr[juc].proc[procs].reg[instr.arg3 - 1];
+    else
+        val2 = instr.arg3;
+    val3 = val1 + val2;
+    res = g_arr[juc].proc[procs].reg[instr.arg1 - 1];
+    g_mem[g_arr[juc].proc[procs].pc + (val3 % IDX_MOD)] = res >> 24 & 0xff;
+    g_mem[g_arr[juc].proc[procs].pc + (val3 % IDX_MOD) + 1] =  res >> 16 & 0xff;
+    g_mem[g_arr[juc].proc[procs].pc + (val3 % IDX_MOD) + 2] =  res >> 8 & 0xff;
+    g_mem[g_arr[juc].proc[procs].pc + (val3 % IDX_MOD) + 3] =  res & 0xff;
     return (0);
 }
 
@@ -70,13 +178,140 @@ int         st(t_instr instr, int juc ,int procs)
                 g_arr[juc].proc[procs].reg[instr.arg1 - 1];
     else
     {
-        g_mem[g_arr[juc].proc[procs].pc + (instr.arg2 % IDX_MOD)] = 1;// g_arr[juc].proc[procs].reg[instr.arg1] >> 24 & 0xff;
-        g_mem[g_arr[juc].proc[procs].pc + (instr.arg2 % IDX_MOD) + 1] =  1;//g_arr[juc].proc[procs].reg[instr.arg1] >> 16 & 0xff;
-        g_mem[g_arr[juc].proc[procs].pc + (instr.arg2 % IDX_MOD) + 2] =  1;//g_arr[juc].proc[procs].reg[instr.arg1] >> 8 & 0xff;
-        g_mem[g_arr[juc].proc[procs].pc + (instr.arg2 % IDX_MOD) + 3] =  1; //g_arr[juc].proc[procs].reg[instr.arg1] & 0xff;
+        g_mem[g_arr[juc].proc[procs].pc + (instr.arg2 % IDX_MOD)] = g_arr[juc].proc[procs].reg[instr.arg1 -1] >> 24 & 0xff;
+        g_mem[g_arr[juc].proc[procs].pc + (instr.arg2 % IDX_MOD) + 1] =  g_arr[juc].proc[procs].reg[instr.arg1-1] >> 16 & 0xff;
+        g_mem[g_arr[juc].proc[procs].pc + (instr.arg2 % IDX_MOD) + 2] =  g_arr[juc].proc[procs].reg[instr.arg1-1] >> 8 & 0xff;
+        g_mem[g_arr[juc].proc[procs].pc + (instr.arg2 % IDX_MOD) + 3] =  g_arr[juc].proc[procs].reg[instr.arg1-1] & 0xff;
     }
     return 0;
 }
+
+int             and(t_instr instr, int juc, int procs)
+{
+    int res;
+    int val1;
+    int val2;
+
+    if ((instr.acb >> 6) == 0)
+        return (1);
+    if  ((instr.acb >> 4 & 0x3) == 0)
+        return (1);
+    if ((instr.acb >> 2 & 0x3) != 1)
+        return (1);
+    if (instr.acb & 0x3 != 0)
+        return (1);
+    if (instr.acb >> 6 == 1 && (instr.arg1 <= 0 || instr.arg1 > 16))
+        return (1);
+    if ((instr.acb >> 4 & 0x3) == 1 && (instr.arg2 <= 0 || instr.arg2 > 16))
+        return (1);
+    if ((instr.acb >> 2 & 0x3) == 1 && (instr.arg3 <= 0 || instr.arg3 > 16))
+        return (1);
+    if (instr.acb >> 6 == 1 )
+        val1 = g_arr[juc].proc[procs].reg[instr.arg1 - 1];
+    else if (instr.acb >> 6 == 2)
+        val1 = instr.arg1;
+    else
+    {
+        val1 = g_mem[g_arr[juc].proc[procs].pc + (instr.arg1 % IDX_MOD)] >> 8;
+        val1 = val1 | g_mem[g_arr[juc].proc[procs].pc + ((instr.arg1 + 1) % IDX_MOD)];
+    }
+    if ((instr.acb >> 4 & 0x3) == 1 )
+        val2 = g_arr[juc].proc[procs].reg[instr.arg2 - 1];
+    else if (instr.acb >> 4 == 2)
+        val2 = instr.arg2;
+    else
+    {
+        val2 = g_mem[g_arr[juc].proc[procs].pc + (instr.arg2 % IDX_MOD)] >> 8;
+        val2 = val2 | g_mem[g_arr[juc].proc[procs].pc + ((instr.arg2 + 1) % IDX_MOD)];
+    }
+    res = val1 & val2;
+    g_arr[juc].proc[procs].reg[instr.arg3 - 1] = res;
+}
+
+int             or(t_instr instr, int juc, int procs)
+{
+    int res;
+    int val1;
+    int val2;
+
+    if ((instr.acb >> 6) == 0)
+        return (1);
+    if  ((instr.acb >> 4 & 0x3) == 0)
+        return (1);
+    if ((instr.acb >> 2 & 0x3) != 1)
+        return (1);
+    if (instr.acb & 0x3 != 0)
+        return (1);
+    if (instr.acb >> 6 == 1 && (instr.arg1 <= 0 || instr.arg1 > 16))
+        return (1);
+    if ((instr.acb >> 4 & 0x3) == 1 && (instr.arg2 <= 0 || instr.arg2 > 16))
+        return (1);
+    if ((instr.acb >> 2 & 0x3) == 1 && (instr.arg3 <= 0 || instr.arg3 > 16))
+        return (1);
+    if (instr.acb >> 6 == 1 )
+        val1 = g_arr[juc].proc[procs].reg[instr.arg1 - 1];
+    else if (instr.acb >> 6 == 2)
+        val1 = instr.arg1;
+    else
+    {
+        val1 = g_mem[g_arr[juc].proc[procs].pc + (instr.arg1 % IDX_MOD)] >> 8;
+        val1 = val1 | g_mem[g_arr[juc].proc[procs].pc + ((instr.arg1 + 1) % IDX_MOD)];
+    }
+    if ((instr.acb >> 4 & 0x3) == 1 )
+        val2 = g_arr[juc].proc[procs].reg[instr.arg2 - 1];
+    else if (instr.acb >> 4 == 2)
+        val2 = instr.arg2;
+    else
+    {
+        val2 = g_mem[g_arr[juc].proc[procs].pc + (instr.arg2 % IDX_MOD)] >> 8;
+        val2 = val2 | g_mem[g_arr[juc].proc[procs].pc + ((instr.arg2 + 1) % IDX_MOD)];
+    }
+    res = val1 | val2;
+    g_arr[juc].proc[procs].reg[instr.arg3 - 1] = res;
+}
+
+int             xor(t_instr instr, int juc, int procs)
+{
+    int res;
+    int val1;
+    int val2;
+
+    if ((instr.acb >> 6) == 0)
+        return (1);
+    if  ((instr.acb >> 4 & 0x3) == 0)
+        return (1);
+    if ((instr.acb >> 2 & 0x3) != 1)
+        return (1);
+    if (instr.acb & 0x3 != 0)
+        return (1);
+    if (instr.acb >> 6 == 1 && (instr.arg1 <= 0 || instr.arg1 > 16))
+        return (1);
+    if ((instr.acb >> 4 & 0x3) == 1 && (instr.arg2 <= 0 || instr.arg2 > 16))
+        return (1);
+    if ((instr.acb >> 2 & 0x3) == 1 && (instr.arg3 <= 0 || instr.arg3 > 16))
+        return (1);
+    if (instr.acb >> 6 == 1)
+        val1 = g_arr[juc].proc[procs].reg[instr.arg1 - 1];
+    else if (instr.acb >> 6 == 2)
+        val1 = instr.arg1;
+    else
+    {
+        val1 = g_mem[g_arr[juc].proc[procs].pc + (instr.arg1 % IDX_MOD)] >> 8;
+        val1 = val1 | g_mem[g_arr[juc].proc[procs].pc + ((instr.arg1 + 1) % IDX_MOD)];
+    }
+    if ((instr.acb >> 4 & 0x3) == 1 )
+        val2 = g_arr[juc].proc[procs].reg[instr.arg2 - 1];
+    else if (instr.acb >> 4 == 2)
+        val2 = instr.arg2;
+    else
+    {
+        val2 = g_mem[g_arr[juc].proc[procs].pc + (instr.arg2 % IDX_MOD)] >> 8;
+        val2 = val2 | g_mem[g_arr[juc].proc[procs].pc + ((instr.arg2 + 1) % IDX_MOD)];
+    }
+    res = val1 ^ val2;
+    g_arr[juc].proc[procs].reg[instr.arg3 - 1] = res;
+}
+
 int				execute_instr(t_instr instr, int juc, int procs)
 {
 	unsigned char code;
@@ -88,30 +323,29 @@ int				execute_instr(t_instr instr, int juc, int procs)
     for (int i = 0; i < 16; i++)
         printf("%d | ", g_arr[juc].proc->reg[i]);
     printf("\n");
-
 	if (code == 1)
 		return (live(instr, juc, procs));
 	else if (code == 2)
 		return (ld(instr, juc, procs));
     else if (code == 3)
 		return (st(instr, juc, procs));
-        /*
 	else if (code == 4)
-		return (add(intstr));
+		return (add(instr, juc, procs));
 	else if (code == 5)
-		return (sub(instr));
+		return (sub(instr, juc, procs));
 	else if (code == 6)
-		return (and(instr));
+		return (and(instr, juc, procs));
 	else if (code == 7)
-		return (or(instr));
+		return (or(instr, juc, procs));
 	else if (code == 8)
-		return (xor(instr));
+		return (xor(instr, juc, procs));
 	else if (code == 9)
-		return (zjmp(instr, i));
+		return (zjmp(instr, juc, procs));
 	else if (code == 10)
-		return (ldi(instr));
+		return (ldi(instr, juc, procs));
 	else if (code == 11)
-		return (sti(instr));
+		return (sti(instr, juc, procs));
+        /*
 	else if (code == 12)
 		return (fork(instr));
 	else if (code == 13)
@@ -125,6 +359,8 @@ int				execute_instr(t_instr instr, int juc, int procs)
 
 	return (0);
 }
+
+
 
 //int				execute_instr(t_instr instr, int juc, int procs)
 //{
@@ -146,6 +382,7 @@ int				execute_instr(t_instr instr, int juc, int procs)
 int	get_arg(unsigned char acb, int juc, int procs)
 {
     int result;
+    short vasea;
 
     if (acb == 1)
     {
@@ -165,8 +402,9 @@ int	get_arg(unsigned char acb, int juc, int procs)
     else if (acb == 3)
     {
         result = 0;
-        result = ((unsigned int)g_mem[g_arr[juc].proc[procs].ip % MEMSIZE]) << 8;
-        result = result | ((unsigned int)g_mem[g_arr[juc].proc[procs].ip + 1 % MEMSIZE]);
+        vasea = ((unsigned short)g_mem[g_arr[juc].proc[procs].ip % MEMSIZE]) << 8;
+        vasea= vasea | ((unsigned short)g_mem[g_arr[juc].proc[procs].ip + 1 % MEMSIZE]);
+        result = vasea;
         g_arr[juc].proc[procs].ip += 2;
         return (result);
     }
@@ -299,6 +537,7 @@ void    run()
             execute_proc(juc);
             if (juc == 2)
                 print_mem();
+            printf("\n");
         }
         //alive = decrease_cycle(&nr_cycle);
         nr_cycle--;
@@ -351,6 +590,7 @@ int     ft_start()
 //	a[30] = 0xfa;
     //bzero(g_mem, 4096);
     print_mem();
+    printf("\n%zd\n",sizeof(short));
     run();
     return (0);
 }
