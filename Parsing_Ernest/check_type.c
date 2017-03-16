@@ -57,7 +57,7 @@ int8_t	check_indirect(char *s)
 {
 	if (str_is_num(s))
 		return (1);
-	if (s[0] == '%')
+	if (s[0] == ':')
 	{
 		if (!s[1] || (s[1] >= '0' && s[1] <= '9'))
 			return (0);

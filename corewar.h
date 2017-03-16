@@ -43,7 +43,7 @@
 #define ELSE_RET0	else return(0);
 #define VAR 		int	fd; char *line; char **words;
 #define MEMSIZE 	4096
-#define IDX_MOD		MEMSIZE/8
+#define IDX_MOD		512
 
 typedef	struct		s_mat
 {
