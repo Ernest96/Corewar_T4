@@ -1,5 +1,6 @@
 .name "ST-Test"
 .comment "For st"
 
-ld %-2, r2
-st r2, -30
+ld %-3, r2
+ld %20, r3
+st r2, r3 

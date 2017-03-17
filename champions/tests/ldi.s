@@ -1,5 +1,5 @@
 .name "Mujik"
 .comment "Tester"
 
-ld %0, r1
-ldi r1, r2, r5
+ld %1, r2
+ldi 2 , r2, r5

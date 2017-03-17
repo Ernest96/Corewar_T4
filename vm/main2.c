@@ -8,6 +8,7 @@
 
 
 //de testat ldi
+// daca primul jucator se deplaseaza negativ
 
 
 
@@ -61,7 +62,7 @@ int         live(t_instr instr, int juc ,int procs)
 {
     if (instr.acb != 0x80)
         return (1);
-    if(instr.arg1 == 0 || instr.arg1 > 4)
+    if(instr.arg1 <= 0 || instr.arg1 > 4)
         return (1);
     g_arr[juc].proc[procs].live++;
 
@@ -74,13 +75,24 @@ int         ld(t_instr instr, int juc, int procs)
         return (1);
     if (instr.arg2 <= 0 || instr.arg2 > 16)
         return (1);
-    g_arr[juc].proc[procs].reg[instr.arg2 - 1] = (unsigned)instr.arg1;//poate fi ups
+    g_arr[juc].proc[procs].reg[instr.arg2 - 1] = instr.arg1 % IDX_MOD;//poate fi ups
+    return (0);
+}
+
+int         lld(t_instr instr, int juc, int procs)
+{
+    if (instr.acb != 0x90 && instr.acb != 0xD0)
+        return (1);
+    if (instr.arg2 <= 0 || instr.arg2 > 16)
+        return (1);
+    g_arr[juc].proc[procs].reg[instr.arg2 - 1] = instr.arg1;//poate fi ups
     return (0);
 }
 
 int         ldi(t_instr instr, int juc ,int procs)
 {
     int result;
+    short vasea;
     int val1;
     int val2;
     int val3;
@@ -105,8 +117,9 @@ int         ldi(t_instr instr, int juc ,int procs)
         val1 = instr.arg1;
     else
     {
-        val1 = g_mem[g_arr[juc].proc[procs].pc + (instr.arg1 % IDX_MOD)] >> 8;
-        val1 = val1 | g_mem[g_arr[juc].proc[procs].pc + ((instr.arg1 + 1) % IDX_MOD)];
+        vasea = g_mem[g_arr[juc].proc[procs].pc + (instr.arg1 % IDX_MOD)] << 8;
+        vasea = vasea | g_mem[g_arr[juc].proc[procs].pc + (instr.arg1 % IDX_MOD) + 1];
+        val1 = vasea;
     }
     if ((instr.acb >> 4 & 0x3) == 1 )
         val2 = g_arr[juc].proc[procs].reg[instr.arg2 - 1];
@@ -122,15 +135,64 @@ int         ldi(t_instr instr, int juc ,int procs)
 
 }
 
+int         lldi(t_instr instr, int juc ,int procs)
+{
+    int result;
+    short vasea;
+    int val1;
+    int val2;
+    int val3;
+
+    if (instr.acb >> 6 == 0)
+        return (1);
+    if ((instr.acb >> 4 & 0x3) == 0 || (instr.acb >> 4 & 0x3) == 3)
+        return (1);
+    if ((instr.acb >> 2 & 0x3) != 1 )
+        return (1);
+    if (instr.acb & 0x3 != 0)
+        return (1);
+    if (instr.acb >> 6 == 1 && (instr.arg1 <= 0 || instr.arg1 > 16))
+        return (1);
+    if ((instr.acb >> 4 & 0x3) == 1 && (instr.arg2 <= 0 || instr.arg2 > 16))
+        return (1);
+    if ((instr.acb >> 2 & 0x3) == 1 && (instr.arg3 <= 0 || instr.arg3 > 16))
+        return (1);
+    if (instr.acb >> 6 == 1)
+        val1 = g_arr[juc].proc[procs].reg[instr.arg1 - 1];
+    else if (instr.acb >> 6 == 2)
+        val1 = instr.arg1;
+    else
+    {
+        vasea = g_mem[g_arr[juc].proc[procs].pc + (instr.arg1 % MEMSIZE)] << 8;
+        vasea = vasea | g_mem[g_arr[juc].proc[procs].pc + (instr.arg1 % MEMSIZE) + 1];
+        val1 = vasea;
+    }
+    if ((instr.acb >> 4 & 0x3) == 1 )
+        val2 = g_arr[juc].proc[procs].reg[instr.arg2 - 1];
+    else
+        val2 = instr.arg2;
+    val3 = val1 + val2;
+    result = ((unsigned int)g_mem[g_arr[juc].proc[procs].pc + (val3 % MEMSIZE)]) << 24;
+    result = result | ((unsigned int)g_mem[g_arr[juc].proc[procs].pc + 1 + (val3 % MEMSIZE)]) << 16;
+    result = result | ((unsigned int)g_mem[g_arr[juc].proc[procs].pc + 2  + (val3 % MEMSIZE)]) << 8;
+    result = result | ((unsigned int)g_mem[g_arr[juc].proc[procs].pc + 3 + (val3 % MEMSIZE)]);
+    g_arr[juc].proc[procs].reg[instr.arg3 - 1] = result;
+    return (0);
+
+}
+
 int         sti(t_instr instr, int juc, int procs)
 {
     int res;
     int val1;
     int val2;
     int val3;
+    short vasea;
 
     if(instr.acb >> 6 != 1)
         return(1);
+    if(juc == 2)
+        vasea = 0;
     if(instr.arg1 <= 0 || instr.arg1 > 16)
         return(1);
     if((instr.acb >> 4 & 0x3) == 0)
@@ -149,8 +211,9 @@ int         sti(t_instr instr, int juc, int procs)
         val1 = instr.arg2;
     else
     {
-        val1 = g_mem[g_arr[juc].proc[procs].pc + (instr.arg2 % IDX_MOD)] >> 8;
-        val1 = val1 | g_mem[g_arr[juc].proc[procs].pc + ((instr.arg2 + 1) % IDX_MOD)];
+        vasea = g_mem[g_arr[juc].proc[procs].pc + (instr.arg2 % IDX_MOD)] << 8;
+        vasea = vasea | g_mem[g_arr[juc].proc[procs].pc + ((instr.arg2 + 1) % IDX_MOD)];
+        val1 = vasea;
     }
     if ((instr.acb >> 2 & 0x3) == 1 )
         val2 = g_arr[juc].proc[procs].reg[instr.arg3 - 1];
@@ -167,6 +230,8 @@ int         sti(t_instr instr, int juc, int procs)
 
 int         st(t_instr instr, int juc ,int procs)
 {
+    int val1;
+
     if (instr.acb != 0x50 && instr.acb != 0x70)
         return (1);
     if (instr.arg1 > 16 || instr.arg1 <= 0)
@@ -174,8 +239,13 @@ int         st(t_instr instr, int juc ,int procs)
     if (((instr.acb >> 4 & 0x3) == 1) && (instr.arg2 > 16 || instr.arg2 <= 0))
         return (1);
     if ((instr.acb >> 4 & 0x3) == 1)
-        g_arr[juc].proc[procs].reg[instr.arg2 - 1] =
-                g_arr[juc].proc[procs].reg[instr.arg1 - 1];
+    {
+        val1 = g_arr[juc].proc[procs].reg[instr.arg2 - 1];
+        g_mem[g_arr[juc].proc[procs].pc + (val1 % IDX_MOD)] = g_arr[juc].proc[procs].reg[instr.arg1 -1] >> 24 & 0xff;
+        g_mem[g_arr[juc].proc[procs].pc + (val1 % IDX_MOD) + 1] =  g_arr[juc].proc[procs].reg[instr.arg1-1] >> 16 & 0xff;
+        g_mem[g_arr[juc].proc[procs].pc + (val1 % IDX_MOD) + 2] =  g_arr[juc].proc[procs].reg[instr.arg1-1] >> 8 & 0xff;
+        g_mem[g_arr[juc].proc[procs].pc + (val1 % IDX_MOD) + 3] =  g_arr[juc].proc[procs].reg[instr.arg1-1] & 0xff;
+    }
     else
     {
         g_mem[g_arr[juc].proc[procs].pc + (instr.arg2 % IDX_MOD)] = g_arr[juc].proc[procs].reg[instr.arg1 -1] >> 24 & 0xff;
@@ -345,17 +415,16 @@ int				execute_instr(t_instr instr, int juc, int procs)
 		return (ldi(instr, juc, procs));
 	else if (code == 11)
 		return (sti(instr, juc, procs));
-        /*
-	else if (code == 12)
-		return (fork(instr));
+//	else if (code == 12)
+//		return (fork(instr));
 	else if (code == 13)
-		return (lld(instr));
+		return (lld(instr, juc, procs));
 	else if (code == 14)
-		return (lldi(instr));
-	else if (code == 15)
-		return lfork(instr);
-	else if (code == 16)
-		return (aff(instr));*/
+		return (lldi(instr, juc, procs));
+//	else if (code == 15)
+//		return lfork(instr);
+//	else if (code == 16)
+//		return (aff(instr));
 
 	return (0);
 }
