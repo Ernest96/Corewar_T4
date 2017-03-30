@@ -1,4 +1,4 @@
-/Applications/CLion.app/Contents/bin/cmake/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /nfs/2016/e/ebitca/Corewar12/vm
+/Volumes/CLion/CLion.app/Contents/bin/cmake/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /nfs/2016/e/ebitca/Corewar12/vm
 -- Configuring done
 -- Generating done
 -- Build files have been written to: /nfs/2016/e/ebitca/Corewar12/vm/cmake-build-debug

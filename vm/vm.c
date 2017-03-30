@@ -163,6 +163,27 @@ void	load()
 	}
 }
 
+void    init_steps(void)
+{
+    g_steps[0] = 0;
+    g_steps[1] = 10;
+    g_steps[2] = 5;
+    g_steps[3] = 5;
+    g_steps[4] = 10;
+    g_steps[5] = 10;
+    g_steps[6] = 6;
+    g_steps[7] = 6;
+    g_steps[8] = 6;
+    g_steps[9] = 20;
+    g_steps[10] = 25;
+    g_steps[11] = 25;
+    g_steps[12] = 800;
+    g_steps[13] = 10;
+    g_steps[14] = 50;
+    g_steps[15] = 1000;
+    g_steps[16] = 2;
+}
+
 int 	main(int argc, char **argv)
 {
 	int8_t flag;
@@ -172,6 +193,7 @@ int 	main(int argc, char **argv)
 	int8_t found;
 
 	found = 0;
+    init_steps();
 	if (argc == 1)
 		return (0);
 	if (argv[1][0] != '-')

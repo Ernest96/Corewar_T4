@@ -6,7 +6,7 @@
 /*   By: ebitca <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/08/13 10:45:48 by ebitca            #+#    #+#             */
-/*   Updated: 2017/03/05 21:31:39 by dprovorn         ###   ########.fr       */
+/*   Updated: 2017/03/17 16:19:14 by ebitca           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ char	**ft_split_whitespaces(char *str)
 	int		i[4];
 
 	i[3] = get_count(str);
-	tab = malloc(sizeof(char*) * (i[3] + 1));
+	tab = (char**)malloc(sizeof(char*) * (i[3] + 1));
 	i[0] = -1;
 	i[1] = 0;
 	while (++i[0] < i[3])

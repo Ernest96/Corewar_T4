@@ -71,6 +71,7 @@ typedef struct     s_proc
    int     carry;
    int     live;
    int      end;
+   int		cycles_to_wait;
    int     	begin;
 }               t_proc;
 
@@ -100,6 +101,7 @@ char 				*g_comment;
 char 				**g_sabl;
 char 				**g_instr;
 int8_t 				g_par[17];
+int8_t				g_steps[17];
 int					g_offset;
 int					g_line;
 t_mat 				*g_mat;

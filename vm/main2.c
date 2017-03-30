@@ -8,8 +8,15 @@
 
 
 //de testat ldi
+// daca primul jucator se deplaseaza negativ
 
-
+int             aff(t_instr instr, int juc, int procs)
+{
+    if (instr.acb != 0x40)
+        return (1);
+    printf("%c", instr.arg1 % 256);
+    return(0);
+}
 
 int             zjmp(t_instr instr, int juc, int procs)
 {
@@ -61,9 +68,10 @@ int         live(t_instr instr, int juc ,int procs)
 {
     if (instr.acb != 0x80)
         return (1);
-    if(instr.arg1 == 0 || instr.arg1 > 4)
+    if(instr.arg1 <= 0 || instr.arg1 > 4)
         return (1);
     g_arr[juc].proc[procs].live++;
+    printf("Live pentru juc %d si proc %d = %d\n" , juc, procs , g_arr[juc].proc[procs].live);
 
     return (0);
 }
@@ -74,13 +82,24 @@ int         ld(t_instr instr, int juc, int procs)
         return (1);
     if (instr.arg2 <= 0 || instr.arg2 > 16)
         return (1);
-    g_arr[juc].proc[procs].reg[instr.arg2 - 1] = (unsigned)instr.arg1;//poate fi ups
+    g_arr[juc].proc[procs].reg[instr.arg2 - 1] = instr.arg1 % IDX_MOD;//poate fi ups
+    return (0);
+}
+
+int         lld(t_instr instr, int juc, int procs)
+{
+    if (instr.acb != 0x90 && instr.acb != 0xD0)
+        return (1);
+    if (instr.arg2 <= 0 || instr.arg2 > 16)
+        return (1);
+    g_arr[juc].proc[procs].reg[instr.arg2 - 1] = instr.arg1;//poate fi ups
     return (0);
 }
 
 int         ldi(t_instr instr, int juc ,int procs)
 {
     int result;
+    short vasea;
     int val1;
     int val2;
     int val3;
@@ -91,7 +110,7 @@ int         ldi(t_instr instr, int juc ,int procs)
         return (1);
     if ((instr.acb >> 2 & 0x3) != 1 )
         return (1);
-    if (instr.acb & 0x3 != 0)
+    if ((instr.acb & 0x3) != 0)
         return (1);
     if (instr.acb >> 6 == 1 && (instr.arg1 <= 0 || instr.arg1 > 16))
         return (1);
@@ -105,8 +124,9 @@ int         ldi(t_instr instr, int juc ,int procs)
         val1 = instr.arg1;
     else
     {
-        val1 = g_mem[g_arr[juc].proc[procs].pc + (instr.arg1 % IDX_MOD)] >> 8;
-        val1 = val1 | g_mem[g_arr[juc].proc[procs].pc + ((instr.arg1 + 1) % IDX_MOD)];
+        vasea = g_mem[g_arr[juc].proc[procs].pc + (instr.arg1 % IDX_MOD)] << 8;
+        vasea = vasea | g_mem[g_arr[juc].proc[procs].pc + (instr.arg1 % IDX_MOD) + 1];
+        val1 = vasea;
     }
     if ((instr.acb >> 4 & 0x3) == 1 )
         val2 = g_arr[juc].proc[procs].reg[instr.arg2 - 1];
@@ -122,15 +142,64 @@ int         ldi(t_instr instr, int juc ,int procs)
 
 }
 
+int         lldi(t_instr instr, int juc ,int procs)
+{
+    int result;
+    short vasea;
+    int val1;
+    int val2;
+    int val3;
+
+    if (instr.acb >> 6 == 0)
+        return (1);
+    if ((instr.acb >> 4 & 0x3) == 0 || (instr.acb >> 4 & 0x3) == 3)
+        return (1);
+    if ((instr.acb >> 2 & 0x3) != 1 )
+        return (1);
+    if ((instr.acb & 0x3) != 0)
+        return (1);
+    if (instr.acb >> 6 == 1 && (instr.arg1 <= 0 || instr.arg1 > 16))
+        return (1);
+    if ((instr.acb >> 4 & 0x3) == 1 && (instr.arg2 <= 0 || instr.arg2 > 16))
+        return (1);
+    if ((instr.acb >> 2 & 0x3) == 1 && (instr.arg3 <= 0 || instr.arg3 > 16))
+        return (1);
+    if (instr.acb >> 6 == 1)
+        val1 = g_arr[juc].proc[procs].reg[instr.arg1 - 1];
+    else if (instr.acb >> 6 == 2)
+        val1 = instr.arg1;
+    else
+    {
+        vasea = g_mem[g_arr[juc].proc[procs].pc + (instr.arg1 % MEMSIZE)] << 8;
+        vasea = vasea | g_mem[g_arr[juc].proc[procs].pc + (instr.arg1 % MEMSIZE) + 1];
+        val1 = vasea;
+    }
+    if ((instr.acb >> 4 & 0x3) == 1 )
+        val2 = g_arr[juc].proc[procs].reg[instr.arg2 - 1];
+    else
+        val2 = instr.arg2;
+    val3 = val1 + val2;
+    result = ((unsigned int)g_mem[g_arr[juc].proc[procs].pc + (val3 % MEMSIZE)]) << 24;
+    result = result | ((unsigned int)g_mem[g_arr[juc].proc[procs].pc + 1 + (val3 % MEMSIZE)]) << 16;
+    result = result | ((unsigned int)g_mem[g_arr[juc].proc[procs].pc + 2  + (val3 % MEMSIZE)]) << 8;
+    result = result | ((unsigned int)g_mem[g_arr[juc].proc[procs].pc + 3 + (val3 % MEMSIZE)]);
+    g_arr[juc].proc[procs].reg[instr.arg3 - 1] = result;
+    return (0);
+
+}
+
 int         sti(t_instr instr, int juc, int procs)
 {
     int res;
     int val1;
     int val2;
     int val3;
+    short vasea;
 
     if(instr.acb >> 6 != 1)
         return(1);
+    if(juc == 2)
+        vasea = 0;
     if(instr.arg1 <= 0 || instr.arg1 > 16)
         return(1);
     if((instr.acb >> 4 & 0x3) == 0)
@@ -149,8 +218,9 @@ int         sti(t_instr instr, int juc, int procs)
         val1 = instr.arg2;
     else
     {
-        val1 = g_mem[g_arr[juc].proc[procs].pc + (instr.arg2 % IDX_MOD)] >> 8;
-        val1 = val1 | g_mem[g_arr[juc].proc[procs].pc + ((instr.arg2 + 1) % IDX_MOD)];
+        vasea = g_mem[g_arr[juc].proc[procs].pc + (instr.arg2 % IDX_MOD)] << 8;
+        vasea = vasea | g_mem[g_arr[juc].proc[procs].pc + ((instr.arg2 + 1) % IDX_MOD)];
+        val1 = vasea;
     }
     if ((instr.acb >> 2 & 0x3) == 1 )
         val2 = g_arr[juc].proc[procs].reg[instr.arg3 - 1];
@@ -167,6 +237,8 @@ int         sti(t_instr instr, int juc, int procs)
 
 int         st(t_instr instr, int juc ,int procs)
 {
+    int val1;
+
     if (instr.acb != 0x50 && instr.acb != 0x70)
         return (1);
     if (instr.arg1 > 16 || instr.arg1 <= 0)
@@ -174,8 +246,13 @@ int         st(t_instr instr, int juc ,int procs)
     if (((instr.acb >> 4 & 0x3) == 1) && (instr.arg2 > 16 || instr.arg2 <= 0))
         return (1);
     if ((instr.acb >> 4 & 0x3) == 1)
-        g_arr[juc].proc[procs].reg[instr.arg2 - 1] =
-                g_arr[juc].proc[procs].reg[instr.arg1 - 1];
+    {
+        val1 = g_arr[juc].proc[procs].reg[instr.arg2 - 1];
+        g_mem[g_arr[juc].proc[procs].pc + (val1 % IDX_MOD)] = g_arr[juc].proc[procs].reg[instr.arg1 -1] >> 24 & 0xff;
+        g_mem[g_arr[juc].proc[procs].pc + (val1 % IDX_MOD) + 1] =  g_arr[juc].proc[procs].reg[instr.arg1-1] >> 16 & 0xff;
+        g_mem[g_arr[juc].proc[procs].pc + (val1 % IDX_MOD) + 2] =  g_arr[juc].proc[procs].reg[instr.arg1-1] >> 8 & 0xff;
+        g_mem[g_arr[juc].proc[procs].pc + (val1 % IDX_MOD) + 3] =  g_arr[juc].proc[procs].reg[instr.arg1-1] & 0xff;
+    }
     else
     {
         g_mem[g_arr[juc].proc[procs].pc + (instr.arg2 % IDX_MOD)] = g_arr[juc].proc[procs].reg[instr.arg1 -1] >> 24 & 0xff;
@@ -198,7 +275,7 @@ int             and(t_instr instr, int juc, int procs)
         return (1);
     if ((instr.acb >> 2 & 0x3) != 1)
         return (1);
-    if (instr.acb & 0x3 != 0)
+    if ((instr.acb & 0x3) != 0)
         return (1);
     if (instr.acb >> 6 == 1 && (instr.arg1 <= 0 || instr.arg1 > 16))
         return (1);
@@ -226,6 +303,7 @@ int             and(t_instr instr, int juc, int procs)
     }
     res = val1 & val2;
     g_arr[juc].proc[procs].reg[instr.arg3 - 1] = res;
+    return (1);
 }
 
 int             or(t_instr instr, int juc, int procs)
@@ -240,7 +318,7 @@ int             or(t_instr instr, int juc, int procs)
         return (1);
     if ((instr.acb >> 2 & 0x3) != 1)
         return (1);
-    if (instr.acb & 0x3 != 0)
+    if ((instr.acb & 0x3) != 0)
         return (1);
     if (instr.acb >> 6 == 1 && (instr.arg1 <= 0 || instr.arg1 > 16))
         return (1);
@@ -268,6 +346,7 @@ int             or(t_instr instr, int juc, int procs)
     }
     res = val1 | val2;
     g_arr[juc].proc[procs].reg[instr.arg3 - 1] = res;
+    return (1);
 }
 
 int             xor(t_instr instr, int juc, int procs)
@@ -282,7 +361,7 @@ int             xor(t_instr instr, int juc, int procs)
         return (1);
     if ((instr.acb >> 2 & 0x3) != 1)
         return (1);
-    if (instr.acb & 0x3 != 0)
+    if ((instr.acb & 0x3) != 0)
         return (1);
     if (instr.acb >> 6 == 1 && (instr.arg1 <= 0 || instr.arg1 > 16))
         return (1);
@@ -310,54 +389,109 @@ int             xor(t_instr instr, int juc, int procs)
     }
     res = val1 ^ val2;
     g_arr[juc].proc[procs].reg[instr.arg3 - 1] = res;
+    return (1);
+}
+
+int forks(t_instr instr, int juc, int procs)
+{
+    int j;
+    int beg;
+    int pr;
+    int temp;
+
+    temp = 0;
+    if (instr.acb != 0x80)
+        return (1);
+    j = g_arr[juc].proc[procs].begin;
+    beg = g_arr[juc].proc[procs].pc + (instr.arg1 % IDX_MOD);
+    pr = ++(g_arr[juc].pr_n) - 1;
+    while (j <= g_arr[juc].proc[procs].end)
+    {
+        g_mem[(beg + temp) % MEMSIZE] = g_mem[j % MEMSIZE];
+        temp++;
+        j++;
+    }
+    g_arr[juc].proc[pr].begin = beg;
+    g_arr[juc].proc[pr].end = j - 1;
+    g_arr[juc].proc[pr].carry =  g_arr[juc].proc[procs].carry;
+    j = -1;
+    while (++j < 16)
+        g_arr[juc].proc[pr].reg[j] = g_arr[juc].proc[procs].reg[j];
+    return (0);
+}
+
+int lforks(t_instr instr, int juc, int procs)
+{
+    int j;
+    int beg;
+    int pr;
+    int temp;
+
+    temp = 0;
+    if (instr.acb != 0x80)
+        return (1);
+    j = g_arr[juc].proc[procs].begin;
+    beg = g_arr[juc].proc[procs].pc + (instr.arg1 % MEMSIZE);
+    pr = ++(g_arr[juc].pr_n) - 1;
+    while (j <= g_arr[juc].proc[procs].end)
+    {
+        g_mem[(beg + temp) % MEMSIZE] = g_mem[j % MEMSIZE];
+        temp++;
+        j++;
+    }
+    g_arr[juc].proc[pr].begin = beg;
+    g_arr[juc].proc[pr].end = j - 1;
+    g_arr[juc].proc[pr].carry =  g_arr[juc].proc[procs].carry;
+    j = -1;
+    while (++j < 16)
+        g_arr[juc].proc[pr].reg[j] = g_arr[juc].proc[procs].reg[j];
+    return (0);
 }
 
 int				execute_instr(t_instr instr, int juc, int procs)
 {
-	unsigned char code;
+    unsigned char code;
 
     code = instr.code;
     printf("Jucatorul %d\t",g_arr[juc].nr);
-	printf("Instructiunea cu codul %.2x %.2x |", instr.code, instr.acb);
+    printf("Instructiunea cu codul %.2x %.2x |", instr.code, instr.acb);
     printf("Arg1 %x, Arg2 %x, Arg3 %x\t\t", instr.arg1, instr.arg2, instr.arg3);
     for (int i = 0; i < 16; i++)
         printf("%d | ", g_arr[juc].proc->reg[i]);
     printf("\n");
-	if (code == 1)
-		return (live(instr, juc, procs));
-	else if (code == 2)
-		return (ld(instr, juc, procs));
+    if (code == 1)
+        return (live(instr, juc, procs));
+    else if (code == 2)
+        return (ld(instr, juc, procs));
     else if (code == 3)
-		return (st(instr, juc, procs));
-	else if (code == 4)
-		return (add(instr, juc, procs));
-	else if (code == 5)
-		return (sub(instr, juc, procs));
-	else if (code == 6)
-		return (and(instr, juc, procs));
-	else if (code == 7)
-		return (or(instr, juc, procs));
-	else if (code == 8)
-		return (xor(instr, juc, procs));
-	else if (code == 9)
-		return (zjmp(instr, juc, procs));
-	else if (code == 10)
-		return (ldi(instr, juc, procs));
-	else if (code == 11)
-		return (sti(instr, juc, procs));
-        /*
-	else if (code == 12)
-		return (fork(instr));
-	else if (code == 13)
-		return (lld(instr));
-	else if (code == 14)
-		return (lldi(instr));
-	else if (code == 15)
-		return lfork(instr);
-	else if (code == 16)
-		return (aff(instr));*/
-
-	return (0);
+        return (st(instr, juc, procs));
+    else if (code == 4)
+        return (add(instr, juc, procs));
+    else if (code == 5)
+        return (sub(instr, juc, procs));
+    else if (code == 6)
+        return (and(instr, juc, procs));
+    else if (code == 7)
+        return (or(instr, juc, procs));
+    else if (code == 8)
+        return (xor(instr, juc, procs));
+    else if (code == 9)
+        return (zjmp(instr, juc, procs));
+    else if (code == 10)
+        return (ldi(instr, juc, procs));
+    else if (code == 11)
+        return (sti(instr, juc, procs));
+    else if (code == 12)
+        return (forks(instr, juc, procs));
+    else if (code == 13)
+        return (lld(instr, juc, procs));
+    else if (code == 14)
+        return (lldi(instr, juc, procs));
+    else if (code == 15)
+        return lforks(instr, juc, procs);
+    else if (code == 16)
+		return (aff(instr, juc, procs));
+    return (0);
 }
 
 
@@ -379,6 +513,8 @@ int				execute_instr(t_instr instr, int juc, int procs)
 //	return (0);
 //}
 
+
+
 int	get_arg(unsigned char acb, int juc, int procs)
 {
     int result;
@@ -386,7 +522,7 @@ int	get_arg(unsigned char acb, int juc, int procs)
 
     if (acb == 1)
     {
-      	g_arr[juc].proc[procs].ip++;
+        g_arr[juc].proc[procs].ip++;
         return (g_mem[(g_arr[juc].proc[procs].ip - 1) % MEMSIZE] & 0x000000FF);
     }
     else if (acb == 2)
@@ -443,18 +579,31 @@ int		get_args(t_instr *instr, int juc , int proc)
 void    execute_proc(int j)
 {
     int i;
-	int flag;
+    int flag;
 
-	flag = 0;
+    flag = 0;
     i = 0;
     while (i < g_arr[j].pr_n)
     {
         t_instr instr;
+        if (g_arr[j].proc[i].cycles_to_wait == -1)
+        {
+            instr.code = g_mem[g_arr[j].proc[i].ip % MEMSIZE];
+            g_arr[j].proc[i].cycles_to_wait = g_steps[instr.code];
+
+            continue;
+        }
+        else if (g_arr[j].proc[i].cycles_to_wait > 0)
+        {
+            g_arr[j].proc[i].cycles_to_wait--;
+            continue;
+        }
         instr.code = g_mem[g_arr[j].proc[i].ip % MEMSIZE];
         g_arr[j].proc[i].ip++;
         instr.acb = g_mem[g_arr[j].proc[i].ip % MEMSIZE];
         g_arr[j].proc[i].ip++;
         flag = get_args(&instr, j, i);
+        g_arr[j].proc[i].cycles_to_wait = -1;
         if (flag == 0)
             g_arr[j].proc[i].pc = g_arr[j].proc[i].ip;
         else
@@ -475,35 +624,38 @@ void    execute_proc(int j)
 int		decrease_cycle(int *nr_cycle)
 {
     static int	count;
-	int			i;
+    int			i;
     int         j;
-	int			flag;
+    int			flag;
+    int         sum;
 
-	i = 0;
-	flag = 0;
-	while (++i <= 4)
-	{
+    i = 0;
+    flag = 0;
+    while (++i <= 4)
+    {
         if (g_arr[i].filename == NULL)
             continue ;
         j = -1;
+        sum = 0;
         while (++j < g_arr[i].pr_n)
+            sum += g_arr[i].proc[0].live;
+        if (sum >= 21)
         {
-		    if (g_arr[i].proc[j].live >= 21)
-		    {
-			    nr_cycle -= CYCLE_DELTA;
-			    flag = 1;
-		    }
+            (*nr_cycle) -= CYCLE_DELTA;
+            printf("Am decrementat\n");
+            flag = 1;
         }
         g_arr[i].proc[0].live = 0;
-	}
-	if (flag == 0)
-    	count++;
-	if (count == 10)
+    }
+    if (flag == 0)
+        count++;
+    if (count == 10)
     {
-        nr_cycle -= CYCLE_DELTA;
+        (*nr_cycle) -= CYCLE_DELTA;
+        printf("Am decrementat fortat\n");
         count = 0;
     }
-	return (flag);
+    return (flag);
 }
 
 void    print_mem() {
@@ -519,28 +671,29 @@ void    print_mem() {
 }
 void    run()
 {
-	int	cyc;
+    int	cyc;
     int nr_cycle;
     int alive;
     int juc;
 
-    nr_cycle = 10;
+    nr_cycle = CYCLE_TO_DIE;
+    nr_cycle = 100;
     alive = 1;
-    while (nr_cycle >= 0 )
+    while (nr_cycle >= 0)
     {
         juc = 0;
         while (++juc <= 5)
         {
             if (g_arr[juc].filename == NULL)
                 continue ;
-            //printf("\nJUCATOR cu nr %d\n", juc);
             execute_proc(juc);
-            if (juc == 2)
+            /*if (juc == 2)
                 print_mem();
-            printf("\n");
+            printf("\n");*/
         }
-        //alive = decrease_cycle(&nr_cycle);
-        nr_cycle--;
+        alive = decrease_cycle(&nr_cycle);
+        //nr_cycle--;
+        printf("{%d}\n", nr_cycle);
     }
 }
 

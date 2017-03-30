@@ -6,7 +6,7 @@
 /*   By: ebitca <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/03/09 18:38:16 by ebitca            #+#    #+#             */
-/*   Updated: 2017/03/09 18:39:00 by ebitca           ###   ########.fr       */
+/*   Updated: 2017/03/17 16:23:12 by ebitca           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,6 @@ void	free_words(char ***words)
 	i = -1;
 	while (*(*words + ++i) != NULL)
 		free(*(*words + i));
-	free(*words);
 }
 
 void	ft_find_label(void)
