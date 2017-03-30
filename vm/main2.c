@@ -29,6 +29,7 @@ int             zjmp(t_instr instr, int juc, int procs)
     return (0);
 }
 
+<<<<<<< HEAD
 int         add(t_instr instr, int juc, int procs)
 {
     int res;
@@ -46,6 +47,36 @@ int         add(t_instr instr, int juc, int procs)
     return (0);
 }
 
+=======
+int             zjmp(t_instr instr, int juc, int procs)
+{
+    if (instr.acb != 0x80)
+        return (1);
+    if (g_arr[juc].proc[procs].carry == 0)
+        return (0);
+    g_arr[juc].proc[procs].pc = (g_arr[juc].proc[procs].pc + instr.arg1) % MEMSIZE;
+    g_arr[juc].proc[procs].ip = g_arr[juc].proc[procs].pc;
+    return (0);
+}
+
+int         add(t_instr instr, int juc, int procs)
+{
+    int res;
+
+    if (instr.acb != 0x54)
+        return (1);
+    if (instr.arg1 <= 0 || instr.arg1 > 16)
+        return (1);
+    if (instr.arg2 <= 0 || instr.arg2 > 16)
+        return (1);
+    if (instr.arg3 <= 0 || instr.arg3 > 16)
+        return (1);
+    res = g_arr[juc].proc[procs].reg[instr.arg1 - 1] + g_arr[juc].proc[procs].reg[instr.arg2 - 1];
+    g_arr[juc].proc[procs].reg[instr.arg3 - 1] = res;
+    return (0);
+}
+
+>>>>>>> 436f1864272e31aaecaed3e43f292153b0a182f7
 int         sub(t_instr instr, int juc, int procs)
 {
     int res;
@@ -110,7 +141,11 @@ int         ldi(t_instr instr, int juc ,int procs)
         return (1);
     if ((instr.acb >> 2 & 0x3) != 1 )
         return (1);
+<<<<<<< HEAD
     if ((instr.acb & 0x3) != 0)
+=======
+    if (instr.acb & 0x3 != 0)
+>>>>>>> 436f1864272e31aaecaed3e43f292153b0a182f7
         return (1);
     if (instr.acb >> 6 == 1 && (instr.arg1 <= 0 || instr.arg1 > 16))
         return (1);
@@ -156,7 +191,11 @@ int         lldi(t_instr instr, int juc ,int procs)
         return (1);
     if ((instr.acb >> 2 & 0x3) != 1 )
         return (1);
+<<<<<<< HEAD
     if ((instr.acb & 0x3) != 0)
+=======
+    if (instr.acb & 0x3 != 0)
+>>>>>>> 436f1864272e31aaecaed3e43f292153b0a182f7
         return (1);
     if (instr.acb >> 6 == 1 && (instr.arg1 <= 0 || instr.arg1 > 16))
         return (1);
@@ -275,7 +314,11 @@ int             and(t_instr instr, int juc, int procs)
         return (1);
     if ((instr.acb >> 2 & 0x3) != 1)
         return (1);
+<<<<<<< HEAD
     if ((instr.acb & 0x3) != 0)
+=======
+    if (instr.acb & 0x3 != 0)
+>>>>>>> 436f1864272e31aaecaed3e43f292153b0a182f7
         return (1);
     if (instr.acb >> 6 == 1 && (instr.arg1 <= 0 || instr.arg1 > 16))
         return (1);
@@ -303,7 +346,10 @@ int             and(t_instr instr, int juc, int procs)
     }
     res = val1 & val2;
     g_arr[juc].proc[procs].reg[instr.arg3 - 1] = res;
+<<<<<<< HEAD
     return (1);
+=======
+>>>>>>> 436f1864272e31aaecaed3e43f292153b0a182f7
 }
 
 int             or(t_instr instr, int juc, int procs)
@@ -318,7 +364,11 @@ int             or(t_instr instr, int juc, int procs)
         return (1);
     if ((instr.acb >> 2 & 0x3) != 1)
         return (1);
+<<<<<<< HEAD
     if ((instr.acb & 0x3) != 0)
+=======
+    if (instr.acb & 0x3 != 0)
+>>>>>>> 436f1864272e31aaecaed3e43f292153b0a182f7
         return (1);
     if (instr.acb >> 6 == 1 && (instr.arg1 <= 0 || instr.arg1 > 16))
         return (1);
@@ -346,7 +396,10 @@ int             or(t_instr instr, int juc, int procs)
     }
     res = val1 | val2;
     g_arr[juc].proc[procs].reg[instr.arg3 - 1] = res;
+<<<<<<< HEAD
     return (1);
+=======
+>>>>>>> 436f1864272e31aaecaed3e43f292153b0a182f7
 }
 
 int             xor(t_instr instr, int juc, int procs)
@@ -361,7 +414,11 @@ int             xor(t_instr instr, int juc, int procs)
         return (1);
     if ((instr.acb >> 2 & 0x3) != 1)
         return (1);
+<<<<<<< HEAD
     if ((instr.acb & 0x3) != 0)
+=======
+    if (instr.acb & 0x3 != 0)
+>>>>>>> 436f1864272e31aaecaed3e43f292153b0a182f7
         return (1);
     if (instr.acb >> 6 == 1 && (instr.arg1 <= 0 || instr.arg1 > 16))
         return (1);
@@ -389,6 +446,7 @@ int             xor(t_instr instr, int juc, int procs)
     }
     res = val1 ^ val2;
     g_arr[juc].proc[procs].reg[instr.arg3 - 1] = res;
+<<<<<<< HEAD
     return (1);
 }
 
@@ -446,6 +504,8 @@ int lforks(t_instr instr, int juc, int procs)
     while (++j < 16)
         g_arr[juc].proc[pr].reg[j] = g_arr[juc].proc[procs].reg[j];
     return (0);
+=======
+>>>>>>> 436f1864272e31aaecaed3e43f292153b0a182f7
 }
 
 int				execute_instr(t_instr instr, int juc, int procs)
@@ -459,6 +519,7 @@ int				execute_instr(t_instr instr, int juc, int procs)
     for (int i = 0; i < 16; i++)
         printf("%d | ", g_arr[juc].proc->reg[i]);
     printf("\n");
+<<<<<<< HEAD
     if (code == 1)
         return (live(instr, juc, procs));
     else if (code == 2)
@@ -492,6 +553,42 @@ int				execute_instr(t_instr instr, int juc, int procs)
     else if (code == 16)
 		return (aff(instr, juc, procs));
     return (0);
+=======
+	if (code == 1)
+		return (live(instr, juc, procs));
+	else if (code == 2)
+		return (ld(instr, juc, procs));
+    else if (code == 3)
+		return (st(instr, juc, procs));
+	else if (code == 4)
+		return (add(instr, juc, procs));
+	else if (code == 5)
+		return (sub(instr, juc, procs));
+	else if (code == 6)
+		return (and(instr, juc, procs));
+	else if (code == 7)
+		return (or(instr, juc, procs));
+	else if (code == 8)
+		return (xor(instr, juc, procs));
+	else if (code == 9)
+		return (zjmp(instr, juc, procs));
+	else if (code == 10)
+		return (ldi(instr, juc, procs));
+	else if (code == 11)
+		return (sti(instr, juc, procs));
+//	else if (code == 12)
+//		return (fork(instr));
+	else if (code == 13)
+		return (lld(instr, juc, procs));
+	else if (code == 14)
+		return (lldi(instr, juc, procs));
+//	else if (code == 15)
+//		return lfork(instr);
+//	else if (code == 16)
+//		return (aff(instr));
+
+	return (0);
+>>>>>>> 436f1864272e31aaecaed3e43f292153b0a182f7
 }
 
 
@@ -689,7 +786,11 @@ void    run()
             execute_proc(juc);
             /*if (juc == 2)
                 print_mem();
+<<<<<<< HEAD
             printf("\n");*/
+=======
+            printf("\n");
+>>>>>>> 436f1864272e31aaecaed3e43f292153b0a182f7
         }
         alive = decrease_cycle(&nr_cycle);
         //nr_cycle--;
